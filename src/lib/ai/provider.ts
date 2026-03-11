@@ -80,10 +80,9 @@ export async function getConfiguredModel(): Promise<LanguageModel> {
     case "anthropic":
       return anthropic(modelId);
     case "shlab": {
-      // Each SH-Lab model has its own base URL.
-      // The URL can be overridden per-model via an environment variable derived
-      // from the model ID, e.g. intern-s1-pro → SHLAB_INTERN_S1_PRO_BASE_URL.
-      // This keeps service-internal URLs out of source control.
+      // Each SH-Lab model is served from its own endpoint configured via an
+      // environment variable derived from the model ID.
+      // e.g. intern-s1-pro → SHLAB_INTERN_S1_PRO_BASE_URL
       const shlabModel = PROVIDERS.shlab.models.find((m) => m.id === modelId);
       if (!shlabModel) {
         throw new Error(
@@ -95,12 +94,11 @@ export async function getConfiguredModel(): Promise<LanguageModel> {
         "SHLAB_" +
         modelId.toUpperCase().replace(/[^A-Z0-9]/g, "_") +
         "_BASE_URL";
-      const baseURL =
-        process.env[envVarName] || shlabModel.baseUrl;
+      const baseURL = process.env[envVarName];
       if (!baseURL) {
         throw new Error(
           `No base URL configured for SH-Lab model "${modelId}". ` +
-            `Set the ${envVarName} environment variable or add a baseUrl to PROVIDERS.shlab.models.`
+            `Set the ${envVarName} environment variable.`
         );
       }
       const shlabProvider = createOpenAI({
