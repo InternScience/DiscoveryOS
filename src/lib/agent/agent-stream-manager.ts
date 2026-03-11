@@ -41,6 +41,8 @@ export interface StreamEntry {
 
 class AgentStreamManager {
   private streams = new Map<string, StreamEntry>();
+  private cleanupTimers = new Map<string, ReturnType<typeof setTimeout>>();
+  private static readonly CLEANUP_DELAY_MS = 5000;
 
   // ---- Query API ----------------------------------------------------------
 
@@ -70,6 +72,8 @@ class AgentStreamManager {
   register(key: string, storageKey: string): AbortController {
     // Abort any previous stream for this key.
     this.stop(key);
+    // Cancel any pending auto-cleanup for this key.
+    this.cancelScheduledCleanup(key);
 
     const abortController = new AbortController();
     const entry: StreamEntry = {
@@ -261,17 +265,30 @@ class AgentStreamManager {
    * Auto-remove a completed entry after a short delay, giving subscribers
    * time to read the final state before it is garbage-collected.
    */
-  private scheduleCleanup(key: string, delayMs = 5000): void {
-    setTimeout(() => {
+  private scheduleCleanup(key: string): void {
+    this.cancelScheduledCleanup(key);
+    const timer = setTimeout(() => {
+      this.cleanupTimers.delete(key);
       const e = this.streams.get(key);
       if (e && e.status !== "streaming") {
         this.streams.delete(key);
       }
-    }, delayMs);
+    }, AgentStreamManager.CLEANUP_DELAY_MS);
+    this.cleanupTimers.set(key, timer);
+  }
+
+  /** Cancel a pending auto-cleanup timer for the given key. */
+  private cancelScheduledCleanup(key: string): void {
+    const timer = this.cleanupTimers.get(key);
+    if (timer) {
+      clearTimeout(timer);
+      this.cleanupTimers.delete(key);
+    }
   }
 
   /** Remove the stream entry entirely (called after successful remount). */
   cleanup(key: string): void {
+    this.cancelScheduledCleanup(key);
     const e = this.streams.get(key);
     if (e && e.status !== "streaming") {
       this.streams.delete(key);

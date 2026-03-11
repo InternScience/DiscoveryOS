@@ -912,8 +912,8 @@ export function AgentPanel({
     if (!lastMessage || lastMessage.role !== "assistant") return;
 
     const parts = lastMessage.parts || [];
-    const lastPart = parts[parts.length - 1];
-    const endsWithToolCall = lastPart && (
+    const lastPart = parts.length > 0 ? parts[parts.length - 1] : undefined;
+    const endsWithToolCall = lastPart != null && (
       lastPart.type?.startsWith("tool-") || lastPart.type === "dynamic-tool"
     );
 
