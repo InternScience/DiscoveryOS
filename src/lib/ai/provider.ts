@@ -3,7 +3,7 @@ import { createOpenAI } from "@ai-sdk/openai";
 import { createAnthropic } from "@ai-sdk/anthropic";
 import { db } from "@/lib/db";
 import { appSettings } from "@/lib/db/schema";
-import { eq } from "drizzle-orm";
+import { inArray } from "drizzle-orm";
 import { DEFAULT_PROVIDER, DEFAULT_MODEL, PROVIDERS } from "./models";
 import type { ProviderId } from "./models";
 import type { LanguageModel } from "ai";
@@ -96,56 +96,67 @@ function getPerModelProvider(
 }
 
 /**
- * Get the currently configured LLM provider ID from settings.
+ * Get the currently configured LLM provider ID and model in a single DB query.
+ * Returns both so callers can avoid duplicate round-trips and stay consistent.
  */
-export async function getConfiguredProviderId(): Promise<string> {
-  const providerSetting = await db
+export async function getConfiguredModelWithProvider(): Promise<{
+  providerId: string;
+  model: LanguageModel;
+}> {
+  const settings = await db
     .select()
     .from(appSettings)
-    .where(eq(appSettings.key, "llm_provider"))
-    .limit(1);
-  return providerSetting[0]?.value || DEFAULT_PROVIDER;
-}
+    .where(inArray(appSettings.key, ["llm_provider", "llm_model"]));
 
-/**
- * Get the currently configured LLM model based on settings
- */
-export async function getConfiguredModel(): Promise<LanguageModel> {
-  const providerSetting = await db
-    .select()
-    .from(appSettings)
-    .where(eq(appSettings.key, "llm_provider"))
-    .limit(1);
+  const providerRow = settings.find((s) => s.key === "llm_provider");
+  const modelRow = settings.find((s) => s.key === "llm_model");
 
-  const modelSetting = await db
-    .select()
-    .from(appSettings)
-    .where(eq(appSettings.key, "llm_model"))
-    .limit(1);
+  const provider = providerRow?.value || DEFAULT_PROVIDER;
+  const modelId = modelRow?.value || DEFAULT_MODEL;
 
-  const provider = providerSetting[0]?.value || DEFAULT_PROVIDER;
-  const modelId = modelSetting[0]?.value || DEFAULT_MODEL;
-
+  let model: LanguageModel;
   switch (provider) {
     case "openai":
       // Use Chat Completions API (not Responses API) for maximum compatibility
       // with third-party proxies and OpenAI-compatible services.
-      return openai.chat(modelId);
+      model = openai.chat(modelId);
+      break;
     case "gemini":
       // Gemini models served via a separate OpenAI-compatible proxy
-      return gemini.chat(modelId);
+      model = gemini.chat(modelId);
+      break;
     case "anthropic":
-      return anthropic(modelId);
+      model = anthropic(modelId);
+      break;
     case "shlab":
     case "qwen":
     case "moonshot":
     case "deepseek":
     case "minimax":
     case "zhipu":
-      return getPerModelProvider(provider, modelId);
+      model = getPerModelProvider(provider, modelId);
+      break;
     default:
       // Use the configured modelId even for unknown providers – the user may be
       // pointing OPENAI_BASE_URL at a third-party OpenAI-compatible service.
-      return openai.chat(modelId);
+      model = openai.chat(modelId);
+      break;
   }
+  return { providerId: provider, model };
+}
+
+/**
+ * Get the currently configured LLM provider ID from settings.
+ */
+export async function getConfiguredProviderId(): Promise<string> {
+  const { providerId } = await getConfiguredModelWithProvider();
+  return providerId;
+}
+
+/**
+ * Get the currently configured LLM model based on settings
+ */
+export async function getConfiguredModel(): Promise<LanguageModel> {
+  const { model } = await getConfiguredModelWithProvider();
+  return model;
 }

@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server";
 import { streamText, convertToModelMessages, UIMessage, stepCountIs } from "ai";
-import { getConfiguredModel, isAIAvailable, getConfiguredProviderId } from "@/lib/ai/provider";
+import { getConfiguredModelWithProvider, isAIAvailable } from "@/lib/ai/provider";
 import { createAgentTools } from "@/lib/ai/agent-tools";
 import { buildAgentSystemPrompt, buildPlanSystemPrompt, buildAskSystemPrompt } from "@/lib/ai/prompts";
 import { buildSkillSystemPrompt } from "@/lib/ai/skill-prompt";
@@ -26,7 +26,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const model = await getConfiguredModel();
+    const { providerId, model } = await getConfiguredModelWithProvider();
     let systemPrompt: string;
     let tools;
 
@@ -121,7 +121,6 @@ export async function POST(req: NextRequest) {
       : DEFAULT_MAX_STEPS;
 
     // Skip tools for providers that don't support tool calling (e.g. vLLM without --enable-auto-tool-choice)
-    const providerId = await getConfiguredProviderId();
     const useTools = providerSupportsTools(providerId);
 
     const result = streamText({
