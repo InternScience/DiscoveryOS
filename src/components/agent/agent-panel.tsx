@@ -679,13 +679,15 @@ export function AgentPanel({
 
   // Stream key for the background stream manager (use refs so the memoized
   // transport always reads the latest values).
-  const streamKey = `${workspaceId}:${sessionId}:${mode}`;
+  // Note: do not include `mode` here so that changing modes mid-stream does
+  // not change the key under which the active stream is registered.
+  const streamKey = `${workspaceId}:${sessionId}`;
   const streamKeyRef = useRef(streamKey);
-  const storageKeyForManagerRef = useRef(`agent-messages:${workspaceId}:${sessionId}:${mode}`);
+  const storageKeyForManagerRef = useRef(`agent-messages:${workspaceId}:${sessionId}`);
   useEffect(() => {
     streamKeyRef.current = streamKey;
-    storageKeyForManagerRef.current = `agent-messages:${workspaceId}:${sessionId}:${mode}`;
-  }, [workspaceId, sessionId, mode, streamKey]);
+    storageKeyForManagerRef.current = `agent-messages:${workspaceId}:${sessionId}`;
+  }, [workspaceId, sessionId, streamKey]);
 
   // Create transport once with the mutable body reference.
   // Uses a custom fetch that tees the response body so the background manager
