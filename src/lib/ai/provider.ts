@@ -5,6 +5,7 @@ import { db } from "@/lib/db";
 import { appSettings } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
 import { DEFAULT_PROVIDER, DEFAULT_MODEL, PROVIDERS } from "./models";
+import type { ProviderId } from "./models";
 import type { LanguageModel } from "ai";
 
 /**
@@ -101,6 +102,18 @@ function getPerModelProvider(
     perModelProviderCache.set(modelId, cached);
   }
   return cached.chat(modelId);
+}
+
+/**
+ * Get the currently configured LLM provider ID from settings.
+ */
+export async function getConfiguredProviderId(): Promise<string> {
+  const providerSetting = await db
+    .select()
+    .from(appSettings)
+    .where(eq(appSettings.key, "llm_provider"))
+    .limit(1);
+  return providerSetting[0]?.value || DEFAULT_PROVIDER;
 }
 
 /**
