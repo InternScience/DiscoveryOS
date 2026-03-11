@@ -159,11 +159,32 @@ export function PaperDiscussionPanel({ article, workspaceId }: PaperDiscussionPa
         }),
       });
 
-      if (!res.ok) throw new Error("Failed to save");
+      if (!res.ok) {
+        let errorMessage: string | undefined;
+        try {
+          const data = await res.json();
+          errorMessage =
+            (typeof data === "string" ? data : data?.error || data?.message) || undefined;
+        } catch {
+          try {
+            const text = await res.text();
+            errorMessage = text || undefined;
+          } catch {
+            // Ignore parsing errors and fall back to localized message below.
+          }
+        }
+
+        throw new Error(errorMessage || tPaper("saveDiscussionToNotesError"));
+      }
+
       setSaved(true);
       toast.success(t("savedToNotes"));
-    } catch {
-      toast.error("Failed to save discussion to notes");
+    } catch (err: unknown) {
+      const message =
+        err instanceof Error && err.message
+          ? err.message
+          : tPaper("saveDiscussionToNotesError");
+      toast.error(message);
     }
   }, [workspaceId, turns, article, t, tPaper]);
 
