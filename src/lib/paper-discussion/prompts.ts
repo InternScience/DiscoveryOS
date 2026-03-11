@@ -1,5 +1,5 @@
 import type { DiscussionStageId, DiscussionRoleId, DiscussionTurn, PaperDiscussionSharedContext, DiscussionAgentConfig } from "./types";
-import { DISCUSSION_AGENTS, SHARED_DISCUSSION_INSTRUCTION } from "./roles";
+import { DISCUSSION_AGENTS, DISCUSSION_STAGES, SHARED_DISCUSSION_INSTRUCTION } from "./roles";
 
 // =============================================================
 // STAGE GUIDANCE — what the active role should do in each stage
@@ -154,8 +154,7 @@ export function buildDiscussionPhasePrompt(
   };
 
   // Find the stage to get the role
-  const { DISCUSSION_STAGES } = require("./roles");
-  const stage = DISCUSSION_STAGES.find((s: { id: string }) => s.id === phaseId);
+  const stage = DISCUSSION_STAGES.find((s) => s.id === phaseId);
   if (!stage) throw new Error(`Unknown stage: ${phaseId}`);
 
   const agentConfig = DISCUSSION_AGENTS[stage.roleId as DiscussionRoleId];
