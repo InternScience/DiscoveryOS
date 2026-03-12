@@ -311,11 +311,11 @@ export function AgentPanel({
   }, []);
 
   const modelDisplayName = useMemo(() => {
-    if (!selectedProvider || !selectedModel) return "Model";
+    if (!selectedProvider || !selectedModel) return t("modelLabel");
     const provider = PROVIDERS[selectedProvider as ProviderId];
     const model = provider?.models.find((m) => m.id === selectedModel);
     return model?.name ?? selectedModel;
-  }, [selectedProvider, selectedModel]);
+  }, [selectedProvider, selectedModel, t]);
 
   const availableProviders = useMemo(() => {
     const configured = settings?.configuredProviders as string[] | undefined;
