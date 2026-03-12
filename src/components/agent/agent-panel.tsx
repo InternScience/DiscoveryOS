@@ -1108,7 +1108,7 @@ export function AgentPanel({
                   <DropdownMenuLabel className="text-xs text-muted-foreground">{provider.name}</DropdownMenuLabel>
                   <DropdownMenuRadioGroup
                     key={provider.id}
-                    value={selectedProvider === provider.id ? selectedModel : ""}
+                    value={selectedProvider === provider.id ? (selectedModel ?? "") : ""}
                     onValueChange={(modelId) => handleModelChange(provider.id, modelId)}
                   >
                     {provider.models.map((model: { id: string; name: string }) => (
