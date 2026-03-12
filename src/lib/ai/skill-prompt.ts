@@ -31,10 +31,9 @@ export function buildSkillSystemPrompt(
     }
   }
 
-  // 1b. Replace SCP Hub API key placeholder with runtime value
-  const scpHubApiKey = process.env.SCP_HUB_API_KEY || "";
-  if (scpHubApiKey && resolvedPrompt.includes("<YOUR_SCP_HUB_API_KEY>")) {
-    resolvedPrompt = resolvedPrompt.replaceAll("<YOUR_SCP_HUB_API_KEY>", scpHubApiKey);
+  // 1b. Replace SCP Hub API key placeholder with an environment variable reference
+  if (resolvedPrompt.includes("<YOUR_SCP_HUB_API_KEY>")) {
+    resolvedPrompt = resolvedPrompt.replaceAll("<YOUR_SCP_HUB_API_KEY>", "$SCP_HUB_API_KEY");
   }
 
   // 2. Build step instructions if present
