@@ -730,8 +730,17 @@
     "stageExecuteSync": "Execute Sync",
     "stagePrepareJob": "Prepare Job",
     "stageSubmitJob": "Submit Job",
+    "stageMonitorJob": "Monitor Job",
+    "stageApproveCollect": "Approve Collection",
     "stageCollectResults": "Collect Results",
     "stageAnalyzeResults": "Analyze Results",
-    "stageRecommendNext": "Recommend Next Step"
+    "stageRecommendNext": "Recommend Next Step",
+    "profilePollInterval": "Poll interval (seconds)",
+    "statusMonitoring": "Monitoring",
+    "schedulerRjob": "rjob (container)",
+    "rjobDefaultImage": "Default container image",
+    "rjobGpuCount": "GPU count",
+    "rjobMemory": "Memory (e.g. 32Gi)",
+    "rjobMounts": "Mount paths"
   }
 }

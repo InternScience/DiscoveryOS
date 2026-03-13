@@ -34,7 +34,7 @@ export const CAPABILITY_KEYS = Object.keys(
 // Remote Execution Profile
 // =============================================================
 
-export type SchedulerType = "shell" | "slurm";
+export type SchedulerType = "shell" | "slurm" | "rjob";
 
 export interface RemoteExecutionProfile {
   id: string;
@@ -61,6 +61,7 @@ export type ExperimentRunStatus =
   | "patching"
   | "syncing"
   | "submitted"
+  | "monitoring"
   | "running"
   | "collecting"
   | "analyzing"
@@ -68,11 +69,22 @@ export type ExperimentRunStatus =
   | "failed"
   | "cancelled";
 
+export interface RJobSubmissionSpec {
+  image: string;
+  gpuCount?: number;
+  memory?: string;
+  mounts?: string[];
+  entrypoint: string;
+  jobName?: string;
+  extraArgs?: string[];
+}
+
 export interface ExperimentManifest {
   entrypoint: string;
   command: string;
   configOverrides?: Record<string, unknown>;
   expectedOutputs?: string[];
+  rjobSpec?: RJobSubmissionSpec;
 }
 
 export interface ExperimentResultSummary {
@@ -98,6 +110,43 @@ export interface AnalysisRecommendation {
   alternatives?: string[];
 }
 
+// =============================================================
+// Job Monitoring
+// =============================================================
+
+export type RunMonitorStatus =
+  | "queued"
+  | "running"
+  | "completing"
+  | "completed"
+  | "failed"
+  | "cancelled"
+  | "timed_out"
+  | "stopped"
+  | "needs_attention"
+  | "unknown";
+
+export interface RunStatusSnapshot {
+  schedulerStatus: RunMonitorStatus;
+  markerEvidence: "done" | "failed" | "none";
+  heartbeat: { found: boolean; ageSeconds?: number } | null;
+  logTail: string | null;
+  logGrowing: boolean | null;
+  resolvedStatus: RunMonitorStatus;
+  decision: "still_running" | "completed" | "failed" | "needs_attention";
+  retryAfterSeconds: number | null;
+  timestamp: string;
+  rawOutput?: string;
+}
+
+export interface JobMonitoringConfig {
+  pollIntervalSeconds?: number;
+  heartbeatPath?: string;
+  doneMarkerPath?: string;
+  failedMarkerPath?: string;
+  logPaths?: string[];
+}
+
 export interface ExperimentRun {
   id: string;
   workspaceId: string;
@@ -107,6 +156,10 @@ export interface ExperimentRun {
   patchSummary: string | null;
   syncSummary: string | null;
   jobId: string | null;
+  monitoringConfig: JobMonitoringConfig | null;
+  lastPolledAt: string | null;
+  statusSnapshot: RunStatusSnapshot | null;
+  collectApprovedAt: string | null;
   resultSummary: ExperimentResultSummary | null;
   recommendation: AnalysisRecommendation | null;
   createdAt: string;
@@ -127,6 +180,7 @@ export type WorkflowStageId =
   | "prepare_job"
   | "submit_job"
   | "monitor_job"
+  | "approve_collect"
   | "collect_results"
   | "analyze_results"
   | "recommend_next";

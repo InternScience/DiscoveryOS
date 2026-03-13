@@ -21,6 +21,10 @@ export async function GET(
   return NextResponse.json({
     ...run,
     manifest: run.manifestJson ? JSON.parse(run.manifestJson) : null,
+    monitoringConfig: run.monitoringConfigJson ? JSON.parse(run.monitoringConfigJson) : null,
+    statusSnapshot: run.statusSnapshotJson ? JSON.parse(run.statusSnapshotJson) : null,
+    lastPolledAt: run.lastPolledAt,
+    collectApprovedAt: run.collectApprovedAt,
     resultSummary: run.resultSummaryJson ? JSON.parse(run.resultSummaryJson) : null,
     recommendation: run.recommendationJson ? JSON.parse(run.recommendationJson) : null,
   });
@@ -43,6 +47,10 @@ export async function PATCH(
     if (body.patchSummary !== undefined) updates.patchSummary = body.patchSummary;
     if (body.syncSummary !== undefined) updates.syncSummary = body.syncSummary;
     if (body.jobId !== undefined) updates.jobId = body.jobId;
+    if (body.monitoringConfigJson !== undefined) updates.monitoringConfigJson = body.monitoringConfigJson;
+    if (body.lastPolledAt !== undefined) updates.lastPolledAt = body.lastPolledAt;
+    if (body.statusSnapshotJson !== undefined) updates.statusSnapshotJson = body.statusSnapshotJson;
+    if (body.collectApprovedAt !== undefined) updates.collectApprovedAt = body.collectApprovedAt;
     if (body.resultSummaryJson !== undefined) updates.resultSummaryJson = body.resultSummaryJson;
     if (body.recommendationJson !== undefined) updates.recommendationJson = body.recommendationJson;
 

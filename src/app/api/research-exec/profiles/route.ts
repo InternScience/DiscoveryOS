@@ -21,7 +21,7 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { workspaceId, name, host, port, username, remotePath, schedulerType, sshKeyRef } = body;
+    const { workspaceId, name, host, port, username, remotePath, schedulerType, sshKeyRef, pollIntervalSeconds } = body;
 
     if (!workspaceId || !name || !host || !username || !remotePath) {
       return NextResponse.json(
@@ -43,6 +43,7 @@ export async function POST(req: NextRequest) {
       remotePath,
       schedulerType: schedulerType ?? "shell",
       sshKeyRef: sshKeyRef ?? null,
+      pollIntervalSeconds: pollIntervalSeconds ?? 60,
       createdAt: now,
       updatedAt: now,
     });

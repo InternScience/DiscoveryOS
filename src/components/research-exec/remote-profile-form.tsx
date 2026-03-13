@@ -138,6 +138,7 @@ export function RemoteProfileForm({ workspaceId, onCreated }: RemoteProfileFormP
   const [remotePath, setRemotePath] = useState("");
   const [schedulerType, setSchedulerType] = useState("shell");
   const [sshKeyRef, setSshKeyRef] = useState("");
+  const [pollInterval, setPollInterval] = useState("60");
   const [saving, setSaving] = useState(false);
   const [sshInput, setSshInput] = useState("");
   const [showQuickPaste, setShowQuickPaste] = useState(true);
@@ -181,6 +182,7 @@ export function RemoteProfileForm({ workspaceId, onCreated }: RemoteProfileFormP
           remotePath,
           schedulerType,
           sshKeyRef: sshKeyRef || null,
+          pollIntervalSeconds: parseInt(pollInterval, 10) || 60,
         }),
       });
       if (!res.ok) {
@@ -285,12 +287,19 @@ export function RemoteProfileForm({ workspaceId, onCreated }: RemoteProfileFormP
           <SelectContent>
             <SelectItem value="shell">Shell (nohup)</SelectItem>
             <SelectItem value="slurm">Slurm (sbatch)</SelectItem>
+            <SelectItem value="rjob">rjob (container)</SelectItem>
           </SelectContent>
         </Select>
         <Input
           placeholder={t("profileSshKeyRef")}
           value={sshKeyRef}
           onChange={(e) => setSshKeyRef(e.target.value)}
+        />
+        <Input
+          placeholder={t("profilePollInterval")}
+          value={pollInterval}
+          onChange={(e) => setPollInterval(e.target.value)}
+          type="number"
         />
       </div>
       <Button type="submit" size="sm" disabled={saving}>

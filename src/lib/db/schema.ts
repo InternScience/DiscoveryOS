@@ -267,11 +267,12 @@ export const remoteProfiles = sqliteTable("remote_profiles", {
   username: text("username").notNull(),
   remotePath: text("remote_path").notNull(),
   schedulerType: text("scheduler_type", {
-    enum: ["shell", "slurm"],
+    enum: ["shell", "slurm", "rjob"],
   })
     .notNull()
     .default("shell"),
   sshKeyRef: text("ssh_key_ref"), // path to SSH key file, never raw key
+  pollIntervalSeconds: integer("poll_interval_seconds").notNull().default(60),
   createdAt: text("created_at")
     .notNull()
     .default(sql`(datetime('now'))`),
@@ -297,7 +298,7 @@ export const experimentRuns = sqliteTable("experiment_runs", {
   status: text("status", {
     enum: [
       "planning", "patching", "syncing", "submitted",
-      "running", "collecting", "analyzing", "completed",
+      "monitoring", "running", "collecting", "analyzing", "completed",
       "failed", "cancelled",
     ],
   })
@@ -307,6 +308,10 @@ export const experimentRuns = sqliteTable("experiment_runs", {
   patchSummary: text("patch_summary"),
   syncSummary: text("sync_summary"),
   jobId: text("job_id"),
+  monitoringConfigJson: text("monitoring_config_json"), // JSON: JobMonitoringConfig
+  lastPolledAt: text("last_polled_at"),
+  statusSnapshotJson: text("status_snapshot_json"), // JSON: RunStatusSnapshot
+  collectApprovedAt: text("collect_approved_at"),
   resultSummaryJson: text("result_summary_json"), // JSON: ExperimentResultSummary
   recommendationJson: text("recommendation_json"), // JSON: AnalysisRecommendation
   createdAt: text("created_at")

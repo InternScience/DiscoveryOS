@@ -9,6 +9,7 @@ import {
   Clock,
   Loader2,
   FlaskConical,
+  Activity,
 } from "lucide-react";
 import { useExperimentRuns } from "@/lib/hooks/use-experiment-runs";
 import type { ExperimentRunStatus } from "@/lib/research-exec/types";
@@ -24,6 +25,8 @@ function statusIcon(status: ExperimentRunStatus) {
     case "failed":
     case "cancelled":
       return <XCircle className="h-3.5 w-3.5 text-red-600 dark:text-red-400" />;
+    case "monitoring":
+      return <Activity className="h-3.5 w-3.5 animate-pulse text-blue-600 dark:text-blue-400" />;
     case "planning":
     case "patching":
     case "syncing":
@@ -44,6 +47,8 @@ function statusColor(status: ExperimentRunStatus) {
     case "failed":
     case "cancelled":
       return "border-red-500/20 bg-red-500/15 text-red-700 dark:text-red-400";
+    case "monitoring":
+      return "border-blue-500/20 bg-blue-500/15 text-blue-700 dark:text-blue-400";
     default:
       return "border-yellow-500/20 bg-yellow-500/15 text-yellow-700 dark:text-yellow-400";
   }

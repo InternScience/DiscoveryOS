@@ -54,6 +54,8 @@ export const WORKFLOW_STAGES: WorkflowStage[] = [
   { id: "execute_sync", roleId: "remote_agent", labelKey: "stageExecuteSync", requiresApproval: true },
   { id: "prepare_job", roleId: "remote_agent", labelKey: "stagePrepareJob", requiresApproval: false },
   { id: "submit_job", roleId: "remote_agent", labelKey: "stageSubmitJob", requiresApproval: true },
+  { id: "monitor_job", roleId: "remote_agent", labelKey: "stageMonitorJob", requiresApproval: false },
+  { id: "approve_collect", roleId: "remote_agent", labelKey: "stageApproveCollect", requiresApproval: true },
   { id: "collect_results", roleId: "remote_agent", labelKey: "stageCollectResults", requiresApproval: false },
   { id: "analyze_results", roleId: "result_analyst", labelKey: "stageAnalyzeResults", requiresApproval: false },
   { id: "recommend_next", roleId: "research_planner", labelKey: "stageRecommendNext", requiresApproval: false },

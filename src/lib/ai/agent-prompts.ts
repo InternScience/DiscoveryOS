@@ -62,9 +62,10 @@ ${skillList}
 - **applyExperimentPatch**: Apply a code/config change after user approval. Requires canWriteCodebase. Always set confirmApply=true only after user confirms.
 - **previewRemoteSync**: Dry-run rsync preview of files that would be synced to remote. Requires canSyncRemote.
 - **executeRemoteSync**: Execute rsync to sync workspace to remote target. Requires canSyncRemote + canUseSSH. Set confirmSync=true after user approval.
-- **prepareJobSubmission**: Prepare a structured job submission manifest. Requires canSubmitJobs.
+- **prepareJobSubmission**: Prepare a structured job submission manifest for shell (nohup), Slurm (sbatch), or rjob (container-based). Requires canSubmitJobs.
 - **submitRemoteJob**: Submit a job to remote via SSH. Requires canSubmitJobs + canUseSSH. Set confirmSubmit=true after user approval.
-- **collectRunResults**: Collect experiment logs/results from remote. Requires canCollectRemoteResults + canUseSSH.
+- **monitorJob**: Check status of a submitted job on remote. Returns scheduler state (Slurm squeue/sacct, shell PID, or rjob status), marker file evidence (DONE/FAILED), heartbeat, log tail, and a decision (still_running/completed/failed/needs_attention) with retryAfterSeconds. Requires canCollectRemoteResults + canUseSSH.
+- **collectRunResults**: Collect experiment logs/results from remote. If runId is provided, first verifies job completion — returns still_running or awaiting_manual_approval if not ready. Requires canCollectRemoteResults + canUseSSH.
 - **analyzeRunResults**: Read and summarize experiment output files. Requires canReadCodebase.
 - **recommendNextStep**: Generate next-step recommendation based on experiment analysis.${skillSection}
 

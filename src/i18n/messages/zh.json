@@ -730,8 +730,17 @@
     "stageExecuteSync": "执行同步",
     "stagePrepareJob": "准备任务",
     "stageSubmitJob": "提交任务",
+    "stageMonitorJob": "监控任务",
+    "stageApproveCollect": "审批采集",
     "stageCollectResults": "收集结果",
     "stageAnalyzeResults": "分析结果",
-    "stageRecommendNext": "推荐下一步"
+    "stageRecommendNext": "推荐下一步",
+    "profilePollInterval": "轮询间隔（秒）",
+    "statusMonitoring": "监控中",
+    "schedulerRjob": "rjob（容器）",
+    "rjobDefaultImage": "默认容器镜像",
+    "rjobGpuCount": "GPU 数量",
+    "rjobMemory": "内存（如 32Gi）",
+    "rjobMounts": "挂载路径"
   }
 }

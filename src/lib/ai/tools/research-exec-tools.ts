@@ -2,6 +2,7 @@ import { tool } from "ai";
 import { z } from "zod";
 import { execInWorkspace } from "@/lib/utils/shell";
 import { getCapabilities, requireCapability } from "@/lib/research-exec/capabilities";
+import { checkJobStatus } from "@/lib/research-exec/job-monitor";
 import { TRUNCATE, BUFFER } from "@/lib/constants";
 import type { ToolContext } from "./types";
 
@@ -290,6 +291,24 @@ export function createResearchExecTools(ctx: ToolContext) {
           };
         }
 
+        if (profile.schedulerType === "rjob") {
+          return {
+            manifest: {
+              type: "rjob",
+              jobName: name,
+              rjobSpec: {
+                image: "pytorch/pytorch:latest",
+                gpuCount: 1,
+                entrypoint: command,
+                jobName: name,
+              },
+              command: `rjob submit --name ${name} --gpu 1 --image pytorch/pytorch:latest -- ${command}`,
+              profile: { name: profile.name, host: profile.host },
+            },
+            instruction: "Review this rjob manifest. Adjust image, GPU count, memory, and mounts as needed, then call submitRemoteJob with confirmSubmit=true.",
+          };
+        }
+
         return {
           manifest: {
             type: "shell",
@@ -362,26 +381,156 @@ export function createResearchExecTools(ctx: ToolContext) {
       },
     }),
 
+    monitorJob: tool({
+      description:
+        "Check the status of a submitted experiment job on the remote target. SSHes in to check scheduler status (Slurm squeue/sacct) or process state (shell PID), plus marker files (DONE/FAILED), heartbeat, and log tail. Returns a structured status snapshot with a decision (still_running/completed/failed/needs_attention) and retryAfterSeconds. Requires canCollectRemoteResults AND canUseSSH.",
+      inputSchema: z.object({
+        profileId: z.string().describe("Remote execution profile ID"),
+        runId: z.string().describe("Experiment run ID"),
+        overrides: z
+          .object({
+            heartbeatPath: z.string().optional(),
+            doneMarkerPath: z.string().optional(),
+            failedMarkerPath: z.string().optional(),
+            logPaths: z.array(z.string()).optional(),
+          })
+          .optional()
+          .describe("Optional overrides for monitoring file paths"),
+      }),
+      execute: async ({ profileId, runId, overrides }) => {
+        const caps = await loadCaps();
+        if ("blocked" in caps) return caps;
+        let block = requireCapability(caps, "canCollectRemoteResults", "monitor job");
+        if (block) return block;
+        block = requireCapability(caps, "canUseSSH", "monitor job (SSH)");
+        if (block) return block;
+
+        const { db } = await import("@/lib/db");
+        const { remoteProfiles, experimentRuns } = await import("@/lib/db/schema");
+        const { eq } = await import("drizzle-orm");
+
+        const [profile] = await db
+          .select()
+          .from(remoteProfiles)
+          .where(eq(remoteProfiles.id, profileId))
+          .limit(1);
+        if (!profile) {
+          return { error: `Remote profile "${profileId}" not found.` };
+        }
+
+        const [run] = await db
+          .select()
+          .from(experimentRuns)
+          .where(eq(experimentRuns.id, runId))
+          .limit(1);
+        if (!run) {
+          return { error: `Experiment run "${runId}" not found.` };
+        }
+
+        // Build a typed profile for checkJobStatus
+        const typedProfile = {
+          id: profile.id,
+          workspaceId: profile.workspaceId,
+          name: profile.name,
+          host: profile.host,
+          port: profile.port,
+          username: profile.username,
+          remotePath: profile.remotePath,
+          schedulerType: profile.schedulerType as "shell" | "slurm" | "rjob",
+          sshKeyRef: profile.sshKeyRef,
+          pollIntervalSeconds: profile.pollIntervalSeconds,
+          createdAt: profile.createdAt,
+          updatedAt: profile.updatedAt,
+        };
+
+        const typedRun = {
+          ...run,
+          status: run.status as import("@/lib/research-exec/types").ExperimentRunStatus,
+          manifest: run.manifestJson ? JSON.parse(run.manifestJson) : null,
+          monitoringConfig: run.monitoringConfigJson ? JSON.parse(run.monitoringConfigJson) : null,
+          lastPolledAt: run.lastPolledAt,
+          statusSnapshot: run.statusSnapshotJson ? JSON.parse(run.statusSnapshotJson) : null,
+          collectApprovedAt: run.collectApprovedAt,
+          resultSummary: run.resultSummaryJson ? JSON.parse(run.resultSummaryJson) : null,
+          recommendation: run.recommendationJson ? JSON.parse(run.recommendationJson) : null,
+        };
+
+        const snapshot = await checkJobStatus(
+          typedProfile,
+          typedRun,
+          ctx.validatedCwd,
+          overrides ?? undefined,
+        );
+
+        // Persist snapshot and poll timestamp
+        await db
+          .update(experimentRuns)
+          .set({
+            statusSnapshotJson: JSON.stringify(snapshot),
+            lastPolledAt: snapshot.timestamp,
+            updatedAt: new Date().toISOString(),
+          })
+          .where(eq(experimentRuns.id, runId));
+
+        return snapshot;
+      },
+    }),
+
     collectRunResults: tool({
       description:
-        "Collect experiment logs and results from the remote target via SSH/SCP. Requires canCollectRemoteResults AND canUseSSH.",
+        "Collect experiment logs and results from the remote target via SSH/SCP. If a runId is provided, first verifies job completion — returns still_running or awaiting_manual_approval if not ready. Requires canCollectRemoteResults AND canUseSSH.",
       inputSchema: z.object({
         profileId: z.string().describe("Remote execution profile ID"),
         remotePaths: z
           .array(z.string())
           .describe("Remote file/directory paths to collect (relative to remote root)"),
+        runId: z
+          .string()
+          .optional()
+          .describe("Experiment run ID — if provided, verifies job completion before collecting"),
         localDestDir: z
           .string()
           .optional()
           .describe("Local directory to store results (default: ./results/)"),
       }),
-      execute: async ({ profileId, remotePaths, localDestDir }) => {
+      execute: async ({ profileId, remotePaths, runId, localDestDir }) => {
         const caps = await loadCaps();
         if ("blocked" in caps) return caps;
         let block = requireCapability(caps, "canCollectRemoteResults", "collect run results");
         if (block) return block;
         block = requireCapability(caps, "canUseSSH", "collect run results (SSH)");
         if (block) return block;
+
+        // Pre-check: if runId provided, verify job is done and collection is approved
+        if (runId) {
+          const { db: runDb } = await import("@/lib/db");
+          const { experimentRuns: runsTable } = await import("@/lib/db/schema");
+          const { eq: runEq } = await import("drizzle-orm");
+          const [run] = await runDb
+            .select()
+            .from(runsTable)
+            .where(runEq(runsTable.id, runId))
+            .limit(1);
+
+          if (run) {
+            const snapshot = run.statusSnapshotJson
+              ? JSON.parse(run.statusSnapshotJson)
+              : null;
+            if (snapshot?.decision === "still_running") {
+              return {
+                decision: "still_running" as const,
+                message: "Job is still running. Use monitorJob to check status.",
+                retryAfterSeconds: snapshot.retryAfterSeconds ?? 60,
+              };
+            }
+            if (!run.collectApprovedAt) {
+              return {
+                decision: "awaiting_manual_approval" as const,
+                message: "Result collection requires manual approval. Set collectApprovedAt on the run to proceed.",
+              };
+            }
+          }
+        }
 
         const { db } = await import("@/lib/db");
         const { remoteProfiles } = await import("@/lib/db/schema");
