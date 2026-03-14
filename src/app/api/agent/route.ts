@@ -2,7 +2,7 @@ import { NextRequest } from "next/server";
 import { streamText, convertToModelMessages, UIMessage, stepCountIs } from "ai";
 import { getConfiguredModelWithProvider, getModelFromOverride, isAIAvailable } from "@/lib/ai/provider";
 import { createAgentTools } from "@/lib/ai/agent-tools";
-import { buildAgentSystemPrompt, buildPlanSystemPrompt, buildAskSystemPrompt } from "@/lib/ai/prompts";
+import { buildAgentSystemPrompt, buildAgentLongSystemPrompt, buildPlanSystemPrompt, buildAskSystemPrompt } from "@/lib/ai/prompts";
 import { buildSkillSystemPrompt } from "@/lib/ai/skill-prompt";
 import { providerSupportsTools, PROVIDERS } from "@/lib/ai/models";
 import type { ProviderId } from "@/lib/ai/models";
@@ -104,7 +104,7 @@ export async function POST(req: NextRequest) {
       systemPrompt = buildAskSystemPrompt(cwd);
       tools = createAgentTools(cwd, ["readFile", "listDirectory", "grep"], workspaceId, sessionCreatedAt);
     } else {
-      // Default agent mode: load skill catalog for auto-matching
+      // Agent modes (agent-long, agent-short, or legacy "agent"): load skill catalog
       let skillCatalog: { slug: string; name: string; description: string | null }[] | undefined;
       try {
         const skillRows = await db
@@ -132,7 +132,13 @@ export async function POST(req: NextRequest) {
         // Skills table might not exist yet; proceed without catalog
       }
 
-      systemPrompt = buildAgentSystemPrompt(cwd, skillCatalog, { noTools: !useTools });
+      if (mode === "agent-long") {
+        // Agent-Long: research execution pipeline mode — enhanced prompt
+        systemPrompt = buildAgentLongSystemPrompt(cwd, skillCatalog, { noTools: !useTools });
+      } else {
+        // Agent-Short (default): standard agent mode
+        systemPrompt = buildAgentSystemPrompt(cwd, skillCatalog, { noTools: !useTools });
+      }
       tools = createAgentTools(cwd, undefined, workspaceId, sessionCreatedAt);
     }
 
@@ -152,12 +158,14 @@ export async function POST(req: NextRequest) {
 
     const modelMessages = await convertToModelMessages(sanitizedMessages);
 
-    const DEFAULT_MAX_STEPS = 50;
+    const isLongMode = mode === "agent-long";
     const MAX_STEPS_UPPER_BOUND = 100;
     const parsedSteps = parseInt(process.env.AGENT_MAX_STEPS || "", 10);
-    const maxSteps = Number.isFinite(parsedSteps) && parsedSteps > 0
-      ? Math.min(parsedSteps, MAX_STEPS_UPPER_BOUND)
-      : DEFAULT_MAX_STEPS;
+    const maxSteps = isLongMode
+      ? MAX_STEPS_UPPER_BOUND // Always 100 for long mode
+      : (Number.isFinite(parsedSteps) && parsedSteps > 0
+          ? Math.min(parsedSteps, MAX_STEPS_UPPER_BOUND)
+          : 50);
 
     // Skip tools for providers that don't support tool calling (e.g. vLLM without --enable-auto-tool-choice)
 
