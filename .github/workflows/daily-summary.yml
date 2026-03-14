@@ -16,17 +16,25 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
+          ref: main
           fetch-depth: 0
 
       - name: Check for changes
         id: check
         run: |
+          # Ensure HEAD is at the true latest main, not the stale schedule SHA
+          git checkout main
+          git log --oneline -1
+
           SINCE=$(date -u -d "24 hours ago" +%Y-%m-%dT%H:%M:%S)
+          echo "SINCE=$SINCE"
           COUNT=$(git log --since="$SINCE" --oneline --no-merges | wc -l)
           echo "commit_count=$COUNT" >> "$GITHUB_OUTPUT"
           echo "since=$SINCE" >> "$GITHUB_OUTPUT"
           if [ "$COUNT" -eq "0" ]; then
             echo "No commits in the last 24 hours, skipping."
+          else
+            echo "Found $COUNT commits since $SINCE"
           fi
 
       - name: Setup Node.js
@@ -45,8 +53,9 @@ jobs:
           COPILOT_GITHUB_TOKEN: ${{ secrets.COPILOT_PAT }}
         run: |
           SINCE="${{ steps.check.outputs.since }}"
-          GIT_LOG=$(git log --since="$SINCE" --pretty=format:"%h %s (%an, %ar)" --no-merges)
-          DIFF_STAT=$(git diff --stat "$(git log --since="$SINCE" --format="%H" | tail -1)"^..HEAD 2>/dev/null || echo "N/A")
+          GIT_LOG=$(git log main --since="$SINCE" --pretty=format:"%h %s (%an, %ar)" --no-merges)
+          OLDEST=$(git log main --since="$SINCE" --format="%H" --no-merges | tail -1)
+          DIFF_STAT=$(git diff --stat "${OLDEST}^..main" 2>/dev/null || echo "N/A")
 
           PROMPT=$(cat <<'PROMPT_EOF'
           你是一个代码仓库的每日变更总结助手。请根据以下 git 信息，用中文生成一份结构化的每日变更总结报告。
