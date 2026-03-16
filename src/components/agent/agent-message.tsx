@@ -29,6 +29,11 @@ export function AgentMessage({ message }: { message: UIMessage }) {
     );
   }
 
+  // Find the last reasoning part index so only it gets the active animation
+  const lastReasoningIndex = message.parts
+    ? message.parts.reduce((acc, part, idx) => part.type === "reasoning" ? idx : acc, -1)
+    : -1;
+
   // Assistant message — render parts
   return (
     <div className="flex gap-2.5 items-start animate-slide-in-up">
@@ -66,10 +71,11 @@ export function AgentMessage({ message }: { message: UIMessage }) {
         // Reasoning part
         if (part.type === "reasoning") {
           const reasoning = (part as { type: "reasoning"; text: string }).text;
+          const isLatest = i === lastReasoningIndex;
           return (
-            <BreathingBorder key={i} isActive={true}>
+            <BreathingBorder key={i} isActive={isLatest}>
               <details className="text-agent-muted text-xs rounded-lg p-2 relative min-h-[60px]">
-                <ThinkingParticles isActive={true} />
+                <ThinkingParticles isActive={isLatest} />
                 <summary className="cursor-pointer hover:text-agent-accent flex items-center gap-2 relative z-10">
                   <div className="relative flex items-center justify-center">
                     {/* Rotating ring */}

@@ -1417,7 +1417,7 @@ export function AgentPanel({
       {/* Particle effects overlay - renders on top of content but allows click-through */}
       <div className="pointer-events-none absolute inset-0 z-20 overflow-hidden">
         <FloatingOrbs isActive={isLoading} />
-        <ParticleEffect isActive={isLoading} particleCount={80} density={0.0003} colors={["#8b5cf6", "#6366f1", "#3b82f6", "#06b6d4", "#a855f7", "#ec4899"]} />
+        <ParticleEffect isActive={isLoading} particleCount={25} density={0.0001} colors={["#8b5cf6", "#6366f1", "#3b82f6", "#06b6d4", "#a855f7", "#ec4899"]} />
       </div>
     </div>
   );
