@@ -524,7 +524,7 @@ export function createResearchExecTools(ctx: ToolContext) {
             if (completionState === "in_progress" || completionState === "not_started") {
               return {
                 kind: "still_running" as const,
-                snapshot: snapshot ?? {},
+                ...(snapshot ? { snapshot } : {}),
                 retryAfterSeconds: 60,
                 message: "Job is still running. Use monitorJob to check status.",
               };
@@ -532,7 +532,7 @@ export function createResearchExecTools(ctx: ToolContext) {
             if (!run.collectApprovedAt) {
               return {
                 kind: "awaiting_manual_approval" as const,
-                snapshot: snapshot ?? {},
+                ...(snapshot ? { snapshot } : {}),
                 message: "Result collection requires manual approval. Set collectApprovedAt on the run to proceed.",
               };
             }
