@@ -1,3 +1,8 @@
+/** Shared prompt section for context compaction awareness. */
+const CONTEXT_COMPACTION_SECTION = `
+## Context Compaction
+If the conversation begins with a message wrapped in \`<context_summary>\` tags, this is a compacted summary of a prior conversation that exceeded the context window. Treat it as full context of what happened previously — continue working from where it left off. Do not ask the user to repeat information that is already in the summary.`;
+
 /**
  * Build a system prompt for the Claude Code-style agent terminal.
  * Optionally includes a skill catalog so the AI can auto-detect and invoke skills.
@@ -82,6 +87,7 @@ async with streamablehttp_client(url=url, headers={"SCP-HUB-API-KEY": API_KEY}) 
 - **collectRunResults**: Collect experiment logs/results from remote. If runId is provided, first verifies job completion — returns still_running or awaiting_manual_approval if not ready. Requires canCollectRemoteResults + canUseSSH.
 - **analyzeRunResults**: Read and summarize experiment output files. Requires canReadCodebase.
 - **recommendNextStep**: Generate next-step recommendation based on experiment analysis.${skillSection}
+${CONTEXT_COMPACTION_SECTION}
 
 ## Guidelines
 1. When asked to explore or understand code, start by listing the directory structure, then read relevant files.
@@ -164,6 +170,7 @@ You are in **Plan Mode**. Your job is to:
 1. Thoroughly explore and understand the codebase
 2. Analyze the user's requirements
 3. Produce a clear, step-by-step implementation plan
+${CONTEXT_COMPACTION_SECTION}
 
 ## Guidelines
 1. Start by exploring the directory structure and reading relevant files.
@@ -200,6 +207,7 @@ You are in **Ask Mode** — a read-only mode. Your job is to:
 2. Explain code, architecture, patterns, and research findings
 3. Help the user understand how things work
 4. Actively use tools to read and explore files before answering — do not guess
+${CONTEXT_COMPACTION_SECTION}
 
 ## Guidelines
 1. Always use tools to look up relevant files and code before answering.
@@ -250,6 +258,43 @@ Create a comprehensive memory note from the conversation transcript below. This 
 3. Use bullet points for readability
 4. Match the language of the conversation (if Chinese, write in Chinese)
 5. Keep the total length between 500-2000 words — never sacrifice important details for brevity`;
+}
+
+/**
+ * Build a system prompt for generating a compact context summary
+ * that will be injected back into the conversation (Claude Code-style compaction).
+ * Unlike the memory summarization prompt (optimized for human-readable notes),
+ * this prompt produces dense, AI-friendly context for seamless continuation.
+ */
+export function buildCompactSummaryPrompt(): string {
+  return `You are a context compression assistant. The conversation exceeded the context window limit. Summarize the transcript below into a compact context block that will replace the old messages so the AI assistant can continue working seamlessly.
+
+## Output Format
+
+### User Goal
+What the user is trying to accomplish (1-2 sentences)
+
+### Key Decisions
+- Decisions made and their rationale
+
+### Actions Taken
+- Tools used, files read/written, commands run and their key outcomes
+- Include specific file paths, function names, error messages, and command outputs
+
+### Current State
+- What has been completed successfully
+- What is in progress or partially done
+- Any errors or blockers encountered
+
+### Next Steps
+- What was about to happen next or was requested but not yet started
+
+## Rules
+1. Maximize information density — this summary replaces the full conversation history
+2. Preserve ALL specific details: exact file paths, code snippets, variable names, config values, error messages, URLs, commit hashes
+3. Keep under 1500 words — but never sacrifice important technical details for brevity
+4. Match the language of the conversation (if Chinese, write in Chinese; if English, write in English)
+5. Focus on actionable context that helps the AI continue the task, not narrative description`;
 }
 
 // =============================================================

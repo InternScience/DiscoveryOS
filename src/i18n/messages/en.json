@@ -222,6 +222,8 @@
     "memorySaving": "Saving conversation to memory...",
     "memorySaved": "Previous conversation saved to memory notes.",
     "memoryError": "Failed to save memory",
+    "contextCompactedNotice": "The above is a compacted summary of the previous conversation. Full conversation has been saved to memory notes.",
+    "contextUsage": "Context window usage",
     "selectMessagesTitle": "Select Messages",
     "selectMessagesDesc": "Choose which messages to include in the memory.",
     "selectAll": "Select All",

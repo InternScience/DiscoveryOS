@@ -255,6 +255,8 @@
     "memorySaving": "正在保存对话记忆...",
     "memorySaved": "之前的对话已保存到记忆笔记。",
     "memoryError": "保存记忆失败",
+    "contextCompactedNotice": "以上是之前对话的压缩摘要，已自动压缩以节省上下文空间。完整对话已保存到记忆笔记。",
+    "contextUsage": "上下文窗口使用率",
     "selectMessagesTitle": "选择对话",
     "selectMessagesDesc": "选择需要纳入记忆的对话内容。",
     "selectAll": "全选",

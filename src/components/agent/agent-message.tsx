@@ -1,12 +1,65 @@
 "use client";
 
-import React from "react";
-import { Bot } from "lucide-react";
+import React, { useState } from "react";
+import { Bot, Brain, ChevronDown, ChevronRight } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import type { UIMessage } from "ai";
 import { ToolCallBlock } from "./tool-call-block";
 import type { ToolInvocationPart } from "./tool-call-block";
 import { BreathingBorder, ThinkingParticles } from "@/components/ui/particle-effect";
+
+/** XML tag used to identify compacted context summary messages. */
+const CONTEXT_SUMMARY_TAG_PREFIX = "<context_summary>";
+
+/** Pre-compiled regex for extracting summary content and notice. */
+const CONTEXT_SUMMARY_RE = /<context_summary>\n?([\s\S]*?)\n?<\/context_summary>\n?([\s\S]*)/;
+
+/** Check if a user message is a context summary (compacted context). */
+function isContextSummaryMessage(text: string): boolean {
+  return text.trimStart().startsWith(CONTEXT_SUMMARY_TAG_PREFIX);
+}
+
+/** Extract summary content and notice from a context summary message. */
+function parseContextSummary(text: string): { summary: string; notice: string } {
+  const match = text.match(CONTEXT_SUMMARY_RE);
+  if (!match) return { summary: text, notice: "" };
+  return { summary: match[1].trim(), notice: match[2].trim() };
+}
+
+/** Renders a compacted context summary as a collapsible panel. */
+function ContextSummaryBlock({ text }: { text: string }) {
+  const [expanded, setExpanded] = useState(false);
+  const { summary, notice } = parseContextSummary(text);
+
+  return (
+    <div className="animate-slide-in-up">
+      <div className="rounded-xl border border-purple-500/30 bg-purple-500/5 overflow-hidden">
+        <button
+          type="button"
+          onClick={() => setExpanded(!expanded)}
+          className="w-full flex items-center gap-2 px-3 py-2 text-left hover:bg-purple-500/10 transition-colors"
+        >
+          <Brain className="h-4 w-4 text-purple-400 shrink-0" />
+          <span className="text-xs font-medium text-purple-400 flex-1">
+            {notice || "Context Summary"}
+          </span>
+          {expanded ? (
+            <ChevronDown className="h-3.5 w-3.5 text-purple-400/60" />
+          ) : (
+            <ChevronRight className="h-3.5 w-3.5 text-purple-400/60" />
+          )}
+        </button>
+        {expanded && (
+          <div className="px-3 pb-3 border-t border-purple-500/20">
+            <div className="mt-2 prose prose-sm max-w-none text-agent-foreground/80 [&_p]:my-1 [&_h3]:text-purple-300 [&_h3]:text-xs [&_h3]:mt-2 [&_h3]:mb-1 [&_ul]:my-1 [&_li]:my-0 [&_li]:text-xs [&_pre]:bg-agent-card-bg [&_pre]:border [&_pre]:border-agent-border [&_pre]:rounded-lg [&_pre]:whitespace-pre-wrap [&_pre]:break-words [&_code]:text-agent-code [&_code]:break-all dark:prose-invert text-xs leading-relaxed">
+              <ReactMarkdown>{summary}</ReactMarkdown>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
 
 export function AgentMessage({ message }: { message: UIMessage }) {
   const isUser = message.role === "user";
@@ -19,6 +72,11 @@ export function AgentMessage({ message }: { message: UIMessage }) {
         )
         .map((p) => p.text)
         .join("") ?? "";
+
+    // Render context summary messages with special UI
+    if (isContextSummaryMessage(text)) {
+      return <ContextSummaryBlock text={text} />;
+    }
 
     return (
       <div className="group flex gap-3 items-start justify-end animate-slide-in-up">

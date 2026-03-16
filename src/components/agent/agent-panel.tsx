@@ -28,7 +28,7 @@ import {
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 import { useSkills } from "@/lib/hooks/use-skills";
-import { getOverflowThresholdChars, getMessageTextLength, PROVIDERS } from "@/lib/ai/models";
+import { getOverflowThresholdChars, getMessageTextLength, getContextWindowChars, PROVIDERS, DEFAULT_PROVIDER, DEFAULT_MODEL, DEFAULT_CONTEXT_MODE } from "@/lib/ai/models";
 import type { ProviderId } from "@/lib/ai/models";
 import { SkillAutocomplete } from "@/components/skills/skill-autocomplete";
 import { SkillParameterDialog } from "@/components/skills/skill-parameter-dialog";
@@ -54,6 +54,22 @@ type AgentMode = "long-agent" | "agent" | "plan" | "ask";
 
 /** Pixel threshold for considering the user "at the bottom" of the scroll area */
 const BOTTOM_THRESHOLD_PX = 80;
+
+/** XML tag used to wrap compacted context summaries in messages. */
+const CONTEXT_SUMMARY_OPEN = "<context_summary>";
+const CONTEXT_SUMMARY_CLOSE = "</context_summary>";
+
+/** Build a UIMessage containing a compacted context summary. */
+function makeContextSummaryMessage(content: string, notice: string): UIMessage {
+  return {
+    id: `memory-${Date.now()}`,
+    role: "user",
+    parts: [{
+      type: "text",
+      text: `${CONTEXT_SUMMARY_OPEN}\n${content}\n${CONTEXT_SUMMARY_CLOSE}\n${notice}`,
+    }],
+  } as UIMessage;
+}
 
 const MODE_LABEL_KEYS: Record<AgentMode, "modeLongAgent" | "modeAgent" | "modePlan" | "modeAsk"> = {
   "long-agent": "modeLongAgent",
@@ -607,10 +623,29 @@ export function AgentPanel({
       }
     };
   }, [status, messages, sendMessage, t, maxAutoContinues]);
+
+  // Resolved provider/model (avoids repeating fallback chain)
+  const resolvedProvider = selectedProvider ?? settings?.llmProvider ?? DEFAULT_PROVIDER;
+  const resolvedModel = selectedModel ?? settings?.llmModel ?? DEFAULT_MODEL;
+
   const overflowThreshold = getOverflowThresholdChars(
-    selectedProvider ?? settings?.llmProvider ?? "openai",
-    selectedModel ?? settings?.llmModel ?? "gpt-4o-mini",
-    settings?.contextMode ?? "normal"
+    resolvedProvider,
+    resolvedModel,
+    settings?.contextMode ?? DEFAULT_CONTEXT_MODE
+  );
+
+  // Compute context usage percentage for display
+  const contextWindowChars = useMemo(
+    () => getContextWindowChars(resolvedProvider, resolvedModel),
+    [resolvedProvider, resolvedModel]
+  );
+  const totalMessageChars = useMemo(
+    () => messages.reduce((sum, m) => sum + getMessageTextLength(m), 0),
+    [messages]
+  );
+  const contextPercent = useMemo(
+    () => Math.min(Math.round((totalMessageChars / contextWindowChars) * 100), 100),
+    [totalMessageChars, contextWindowChars]
   );
 
   const summarizeAndEvict = async (
@@ -625,6 +660,7 @@ export function AgentPanel({
     setSummaryError(null);
 
     try {
+      // Step 1: Generate compact summary (preview mode — don't save yet)
       const res = await fetch("/api/agent/summarize", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -632,6 +668,8 @@ export function AgentPanel({
           workspaceId,
           messages: messagesToSummarize,
           trigger,
+          preview: true,
+          compact: true,
           locale,
           sessionName,
         }),
@@ -642,16 +680,30 @@ export function AgentPanel({
         throw new Error(errData.error || "Summarization failed");
       }
 
+      const { title, content } = await res.json();
+
+      // Step 2: Save to DB as memory note (best-effort — don't block context compaction on save failure)
+      const saveRes = await fetch("/api/notes", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          workspaceId,
+          title,
+          content,
+          type: "memory",
+        }),
+      });
+      if (!saveRes.ok) {
+        console.warn("Failed to save memory note to DB:", await saveRes.text().catch(() => ""));
+      }
+
+      // Step 3: Inject compact summary or clear
       if (trigger === "clear") {
         setMessages([]);
       } else {
-        // Inject a marker message indicating memory was saved
-        const memoryMarker = {
-          id: `memory-${Date.now()}`,
-          role: "assistant" as const,
-          parts: [{ type: "text" as const, text: t("memorySaved") }],
-        } as UIMessage;
-        setMessages([memoryMarker, ...messagesToKeep]);
+        // Inject the compact summary as a user-role context message
+        const contextSummary = makeContextSummaryMessage(content, t("contextCompactedNotice"));
+        setMessages([contextSummary, ...messagesToKeep]);
       }
     } catch (err) {
       setSummaryError(err instanceof Error ? err.message : "Summarization failed");
@@ -674,15 +726,16 @@ export function AgentPanel({
     if (messages.length < 4) return;
     if (messages.length === failedAtCountRef.current) return;
 
-    // Pre-compute per-message sizes once to avoid repeated serialization
+    // Reuse pre-computed totalMessageChars for the early-exit check
+    if (totalMessageChars <= overflowThreshold) return;
+
+    // Need per-message sizes only for split-point calculation
     const messageSizes = messages.map((m) => getMessageTextLength(m));
-    const totalChars = messageSizes.reduce((sum, s) => sum + s, 0);
-    if (totalChars <= overflowThreshold) return;
 
     // Find split point: keep newest ~20% by character count
     let keepFromIndex = messages.length;
     let accumulatedChars = 0;
-    const targetKeepChars = totalChars * 0.2;
+    const targetKeepChars = totalMessageChars * 0.2;
 
     for (let i = messages.length - 1; i >= 0; i--) {
       accumulatedChars += messageSizes[i];
@@ -894,8 +947,9 @@ export function AgentPanel({
         body: JSON.stringify({
           workspaceId,
           messages: selected,
-          trigger: "clear",
+          trigger: overflowKeepRef.current ? "overflow" : "clear",
           preview: true,
+          compact: true,
           locale,
           sessionName,
         }),
@@ -950,13 +1004,9 @@ export function AgentPanel({
         throw new Error(errorMessage);
       }
       if (overflowKeepRef.current) {
-        // Overflow: keep recent messages, inject memory marker
-        const memoryMarker = {
-          id: `memory-${Date.now()}`,
-          role: "assistant" as const,
-          parts: [{ type: "text" as const, text: t("memorySaved") }],
-        } as UIMessage;
-        setMessages([memoryMarker, ...scrubStuckToolParts(overflowKeepRef.current)]);
+        // Overflow: keep recent messages, inject compact summary as context
+        const contextSummary = makeContextSummaryMessage(memoryPreviewContent, t("contextCompactedNotice"));
+        setMessages([contextSummary, ...scrubStuckToolParts(overflowKeepRef.current)]);
         overflowKeepRef.current = null;
       } else {
         // Manual clear: empty all messages
@@ -1192,6 +1242,21 @@ export function AgentPanel({
             autoFocus
           />
           <div className="flex items-center gap-1 shrink-0 mt-1">
+            {/* Context usage percentage */}
+            {messages.length > 0 && (
+              <span
+                title={t("contextUsage")}
+                className={`text-[10px] font-mono tabular-nums px-1 py-0.5 rounded select-none transition-colors ${
+                  contextPercent >= 80
+                    ? "text-[#f7768e]"
+                    : contextPercent >= 50
+                    ? "text-[#e0af68]"
+                    : "text-agent-muted"
+                }`}
+              >
+                {contextPercent}%
+              </span>
+            )}
             {isLoading && (
             <button
               onClick={handleStop}
