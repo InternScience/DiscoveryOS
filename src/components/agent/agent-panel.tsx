@@ -50,21 +50,21 @@ import type { Skill } from "@/types";
 import { swrFetcher as fetcher } from "@/lib/fetcher";
 import { AgentMessage } from "./agent-message";
 
-type AgentMode = "agent-short" | "agent-long" | "plan" | "ask";
+type AgentMode = "long-agent" | "agent" | "plan" | "ask";
 
 /** Pixel threshold for considering the user "at the bottom" of the scroll area */
 const BOTTOM_THRESHOLD_PX = 80;
 
-const MODE_LABEL_KEYS: Record<AgentMode, string> = {
-  "agent-short": "modeAgentShort",
-  "agent-long": "modeAgentLong",
+const MODE_LABEL_KEYS: Record<AgentMode, "modeLongAgent" | "modeAgent" | "modePlan" | "modeAsk"> = {
+  "long-agent": "modeLongAgent",
+  agent: "modeAgent",
   plan: "modePlan",
   ask: "modeAsk",
 };
 
-const MODE_PLACEHOLDER_KEYS: Record<AgentMode, string> = {
-  "agent-short": "placeholder",
-  "agent-long": "placeholderAgentLong",
+const MODE_PLACEHOLDER_KEYS: Record<AgentMode, "placeholder" | "placeholderLongAgent" | "placeholderPlan" | "placeholderAsk"> = {
+  "long-agent": "placeholderLongAgent",
+  agent: "placeholder",
   plan: "placeholderPlan",
   ask: "placeholderAsk",
 };
@@ -97,7 +97,7 @@ export function AgentPanel({
   const userScrolledUp = useRef(false);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const [input, setInput] = useState("");
-  const [mode, setMode] = useState<AgentMode>("agent-short");
+  const [mode, setMode] = useState<AgentMode>("agent");
   const [selectedProvider, setSelectedProvider] = useState<string | null>(null);
   const [selectedModel, setSelectedModel] = useState<string | null>(null);
 
@@ -334,7 +334,7 @@ export function AgentPanel({
   // Mutable body object — allows injecting skillId/paramValues before each send
   const agentBody = useMemo(
     () =>
-      ({ workspaceId, cwd: folderPath, mode: "agent-short", sessionCreatedAt }) as Record<string, unknown>,
+      ({ workspaceId, cwd: folderPath, mode: "agent", sessionCreatedAt }) as Record<string, unknown>,
     // eslint-disable-next-line react-hooks/exhaustive-deps
     []
   );
@@ -555,9 +555,9 @@ export function AgentPanel({
   const prevStatusRef = useRef(status);
   const autoContinueCountRef = useRef(0);
   const autoContinueTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const maxAutoContinues = mode === "long-agent" ? 100 : 20; // long-agent supports extended interactions
 
   useEffect(() => {
-    const maxAutoContinues = mode === "agent-long" ? 50 : 20; // Higher limit for long pipelines
     const wasStreaming = prevStatusRef.current === "streaming" || prevStatusRef.current === "submitted";
     const isNowReady = status === "ready";
     prevStatusRef.current = status;
@@ -606,7 +606,7 @@ export function AgentPanel({
         autoContinueTimerRef.current = null;
       }
     };
-  }, [status, messages, sendMessage, t, mode]);
+  }, [status, messages, sendMessage, t, maxAutoContinues]);
   const overflowThreshold = getOverflowThresholdChars(
     selectedProvider ?? settings?.llmProvider ?? "openai",
     selectedModel ?? settings?.llmModel ?? "gpt-4o-mini",
@@ -1142,16 +1142,16 @@ export function AgentPanel({
               <DropdownMenuLabel className="text-xs">{t("modeLabel")}</DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuRadioGroup value={mode} onValueChange={(v) => handleModeChange(v as AgentMode)}>
-                <DropdownMenuRadioItem value="agent-short">
+                <DropdownMenuRadioItem value="long-agent">
                   <div className="flex flex-col">
-                    <span>{t("modeAgentShort")}</span>
-                    <span className="text-xs text-muted-foreground">{t("modeAgentShortDesc")}</span>
+                    <span>{t("modeLongAgent")}</span>
+                    <span className="text-xs text-muted-foreground">{t("modeLongAgentDesc")}</span>
                   </div>
                 </DropdownMenuRadioItem>
-                <DropdownMenuRadioItem value="agent-long">
+                <DropdownMenuRadioItem value="agent">
                   <div className="flex flex-col">
-                    <span>{t("modeAgentLong")}</span>
-                    <span className="text-xs text-muted-foreground">{t("modeAgentLongDesc")}</span>
+                    <span>{t("modeAgent")}</span>
+                    <span className="text-xs text-muted-foreground">{t("modeAgentDesc")}</span>
                   </div>
                 </DropdownMenuRadioItem>
                 <DropdownMenuRadioItem value="plan">
