@@ -1,0 +1,285 @@
+"use client";
+
+import { useState, useRef, useEffect } from "react";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+import { Badge } from "@/components/ui/badge";
+import { Send, Brain, User, CheckCircle, XCircle, Loader2, FileText } from "lucide-react";
+import { CheckpointReview } from "./checkpoint-review";
+import { ArtifactViewer } from "./artifact-viewer";
+import type {
+  DeepResearchMessage,
+  DeepResearchSession,
+  DeepResearchNode,
+  DeepResearchArtifact,
+  ConfirmationOutcome,
+} from "@/lib/deep-research/types";
+
+interface ResearchChatProps {
+  session: DeepResearchSession;
+  messages: DeepResearchMessage[];
+  nodes: DeepResearchNode[];
+  artifacts: DeepResearchArtifact[];
+  onSendMessage: (content: string) => Promise<void>;
+  onApprove: (nodeId: string, approved: boolean, feedback?: string) => Promise<void>;
+  onConfirm: (nodeId: string, outcome: ConfirmationOutcome, feedback?: string) => Promise<void>;
+}
+
+export function ResearchChat({
+  session,
+  messages,
+  nodes,
+  artifacts,
+  onSendMessage,
+  onApprove,
+  onConfirm,
+}: ResearchChatProps) {
+  const [input, setInput] = useState("");
+  const [sending, setSending] = useState(false);
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  const awaitingApprovalNodes = nodes.filter((n) => n.status === "awaiting_approval");
+  const isRunning = session.status === "running";
+  const isAwaitingConfirmation = session.status === "awaiting_user_confirmation";
+  const isCompleted = session.status === "completed";
+  const isFailed = session.status === "failed";
+  const isCancelled = session.status === "cancelled";
+  const isTerminal = isCompleted || isFailed || isCancelled;
+
+  // Get the pending checkpoint data
+  const pendingCheckpoint = isAwaitingConfirmation && session.pendingCheckpointId
+    ? artifacts.find((a) => a.id === session.pendingCheckpointId)
+    : null;
+
+  // Get the final report artifact (for completed sessions)
+  const finalReportArtifact = artifacts.find((a) => a.artifactType === "final_report");
+
+  useEffect(() => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+    }
+  }, [messages.length, isAwaitingConfirmation, isCompleted]);
+
+  const handleSend = async () => {
+    const content = input.trim();
+    if (!content || sending) return;
+    setSending(true);
+    setInput("");
+    try {
+      await onSendMessage(content);
+    } finally {
+      setSending(false);
+    }
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      handleSend();
+    }
+  };
+
+  const handleCheckpointConfirm = async (outcome: ConfirmationOutcome, feedback?: string) => {
+    // Use the checkpoint's nodeId directly, fall back to first awaiting node
+    const awaitingConfirmationNodes = nodes.filter((n) => n.status === "awaiting_user_confirmation");
+    const checkpointNodeId = pendingCheckpoint
+      ? (pendingCheckpoint.content as unknown as { nodeId?: string })?.nodeId
+      : undefined;
+    const targetNodeId = checkpointNodeId || awaitingConfirmationNodes[0]?.id;
+    if (!targetNodeId) return;
+    await onConfirm(targetNodeId, outcome, feedback);
+  };
+
+  return (
+    <div className="flex flex-col h-full">
+      {/* Header */}
+      <div className="flex items-center gap-2 px-3 py-2 border-b border-border/50">
+        <Brain className="h-4 w-4 text-purple-500" />
+        <span className="text-sm font-medium flex-1">Main Brain</span>
+        <Badge
+          variant={
+            isRunning ? "default"
+              : isAwaitingConfirmation ? "outline"
+                : isCompleted ? "secondary"
+                  : isFailed ? "destructive"
+                    : "secondary"
+          }
+          className="text-[10px]"
+        >
+          {session.status.replace(/_/g, " ")}
+        </Badge>
+        <Badge variant="outline" className="text-[10px]">
+          {session.phase}
+        </Badge>
+      </div>
+
+      {/* Messages */}
+      <ScrollArea className="flex-1 min-h-0" ref={scrollRef}>
+        <div className="p-3 space-y-3">
+          {messages.map((msg) => (
+            <div
+              key={msg.id}
+              className={`flex gap-2 ${msg.role === "user" ? "justify-end" : "justify-start"}`}
+            >
+              {msg.role !== "user" && (
+                <div className="shrink-0 h-6 w-6 rounded-full bg-purple-100 dark:bg-purple-900 flex items-center justify-center">
+                  <Brain className="h-3.5 w-3.5 text-purple-600 dark:text-purple-300" />
+                </div>
+              )}
+              <div
+                className={`max-w-[85%] rounded-lg px-3 py-2 text-sm whitespace-pre-wrap ${
+                  msg.role === "user"
+                    ? "bg-primary text-primary-foreground"
+                    : "bg-muted"
+                }`}
+              >
+                {msg.content}
+              </div>
+              {msg.role === "user" && (
+                <div className="shrink-0 h-6 w-6 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center">
+                  <User className="h-3.5 w-3.5 text-blue-600 dark:text-blue-300" />
+                </div>
+              )}
+            </div>
+          ))}
+
+          {/* Running indicator */}
+          {isRunning && (
+            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+              <Loader2 className="h-3 w-3 animate-spin" />
+              <span>Processing...</span>
+            </div>
+          )}
+
+          {/* Checkpoint review panel */}
+          {isAwaitingConfirmation && pendingCheckpoint && (
+            <CheckpointReview
+              checkpoint={pendingCheckpoint.content as unknown as {
+                title: string;
+                humanSummary: string;
+                currentFindings: string;
+                openQuestions: string[];
+                recommendedNextAction: string;
+                alternativeNextActions: string[];
+                artifactsToReview: string[];
+                phase: string;
+                stepType: string;
+              }}
+              artifacts={artifacts}
+              onConfirm={handleCheckpointConfirm}
+            />
+          )}
+
+          {/* Completed state — show final report */}
+          {isCompleted && (
+            <div className="space-y-3">
+              <div className="flex items-center gap-2 p-3 bg-green-50 dark:bg-green-950/50 rounded-lg border border-green-200 dark:border-green-800">
+                <CheckCircle className="h-4 w-4 text-green-600 dark:text-green-400 shrink-0" />
+                <span className="text-sm font-medium text-green-800 dark:text-green-200">
+                  Research completed
+                </span>
+              </div>
+
+              {finalReportArtifact ? (
+                <div className="border rounded-lg p-4 bg-background">
+                  <ArtifactViewer artifact={finalReportArtifact} />
+                </div>
+              ) : (
+                <div className="text-xs text-muted-foreground p-3 bg-muted rounded-lg">
+                  <div className="flex items-center gap-2 mb-2">
+                    <FileText className="h-3.5 w-3.5" />
+                    <span className="font-medium">No final report artifact found.</span>
+                  </div>
+                  <p>
+                    You can view all research artifacts by clicking on nodes in the workflow graph on the right.
+                    Look for nodes of type &quot;final_report&quot; or &quot;synthesize&quot; to find the research conclusions.
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Failed state */}
+          {isFailed && (
+            <div className="flex items-center gap-2 p-3 bg-red-50 dark:bg-red-950/50 rounded-lg border border-red-200 dark:border-red-800">
+              <XCircle className="h-4 w-4 text-red-600 dark:text-red-400 shrink-0" />
+              <div className="text-sm">
+                <span className="font-medium text-red-800 dark:text-red-200">Research failed</span>
+                {session.error && (
+                  <p className="text-xs text-red-600 dark:text-red-400 mt-1">{session.error}</p>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Cancelled state */}
+          {isCancelled && (
+            <div className="flex items-center gap-2 p-3 bg-gray-50 dark:bg-gray-900/50 rounded-lg border border-gray-200 dark:border-gray-700">
+              <XCircle className="h-4 w-4 text-gray-500 shrink-0" />
+              <span className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                Research was stopped
+              </span>
+            </div>
+          )}
+        </div>
+      </ScrollArea>
+
+      {/* Approval panel (legacy, for awaiting_approval nodes) */}
+      {awaitingApprovalNodes.length > 0 && (
+        <div className="px-3 py-2 border-t border-border/50 bg-yellow-50 dark:bg-yellow-950 space-y-2">
+          <div className="text-xs font-medium text-yellow-800 dark:text-yellow-200">
+            Approval Required
+          </div>
+          {awaitingApprovalNodes.map((node) => (
+            <div key={node.id} className="flex items-center gap-2">
+              <span className="text-xs flex-1 truncate">{node.label}</span>
+              <Button
+                size="sm"
+                variant="outline"
+                className="h-6 px-2 text-[10px] text-green-600"
+                onClick={() => onApprove(node.id, true)}
+              >
+                <CheckCircle className="h-3 w-3 mr-1" />
+                Approve
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                className="h-6 px-2 text-[10px] text-red-600"
+                onClick={() => onApprove(node.id, false)}
+              >
+                <XCircle className="h-3 w-3 mr-1" />
+                Reject
+              </Button>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Input — hidden when session is in a terminal state */}
+      {!isTerminal && (
+        <div className="p-3 border-t border-border/50">
+          <div className="flex gap-2">
+            <Textarea
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={handleKeyDown}
+              placeholder="Message the Main Brain..."
+              className="min-h-[40px] max-h-[120px] resize-none text-sm"
+              rows={1}
+            />
+            <Button
+              size="icon"
+              onClick={handleSend}
+              disabled={!input.trim() || sending}
+              className="shrink-0 h-10 w-10"
+            >
+              <Send className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}

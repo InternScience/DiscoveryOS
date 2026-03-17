@@ -1,0 +1,369 @@
+"use client";
+
+import { useState, useCallback } from "react";
+import {
+  ResizableHandle,
+  ResizablePanel,
+  ResizablePanelGroup,
+} from "@/components/ui/resizable";
+import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Play, Brain, Trash2 } from "lucide-react";
+import { toast } from "sonner";
+import {
+  useDeepResearchSessions,
+  useDeepResearchSession,
+  useDeepResearchMessages,
+  useDeepResearchNodes,
+  useDeepResearchArtifacts,
+  useDeepResearchEvents,
+} from "@/lib/hooks/use-deep-research";
+import { SessionList } from "./session-list";
+import { IntakeScreen } from "./intake-screen";
+import { ResearchChat } from "./research-chat";
+import { FinalReportView } from "./final-report-view";
+import { PhaseProgress } from "./phase-progress";
+import { WorkflowGraph } from "./workflow-graph";
+import { NodeDetailDrawer } from "./node-detail-drawer";
+import { DeleteSessionDialog } from "./delete-session-dialog";
+import type { ConfirmationOutcome } from "@/lib/deep-research/types";
+
+type PanelView = "list" | "intake" | "session";
+
+interface DeepResearchPanelProps {
+  workspaceId: string;
+}
+
+export function DeepResearchPanel({ workspaceId }: DeepResearchPanelProps) {
+  const [view, setView] = useState<PanelView>("list");
+  const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
+  const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+
+  const { sessions, mutate: mutateSessions } = useDeepResearchSessions(workspaceId);
+  const { session, mutate: mutateSession } = useDeepResearchSession(activeSessionId ?? undefined);
+  const { messages, mutate: mutateMessages } = useDeepResearchMessages(activeSessionId ?? undefined);
+  const { nodes } = useDeepResearchNodes(activeSessionId ?? undefined);
+  const { artifacts } = useDeepResearchArtifacts(activeSessionId ?? undefined);
+  const { events } = useDeepResearchEvents(activeSessionId ?? undefined);
+
+  const selectedNode = nodes.find((n) => n.id === selectedNodeId) ?? null;
+
+  // --- Navigation ---
+
+  const handleOpenSession = useCallback((sessionId: string) => {
+    setActiveSessionId(sessionId);
+    setView("session");
+    setSelectedNodeId(null);
+    setDrawerOpen(false);
+  }, []);
+
+  const handleBackToList = useCallback(() => {
+    setActiveSessionId(null);
+    setView("list");
+    setSelectedNodeId(null);
+    setDrawerOpen(false);
+  }, []);
+
+  // --- Intake ---
+
+  const handleStartIntake = useCallback(() => {
+    setView("intake");
+  }, []);
+
+  const handleIntakeCreated = useCallback(
+    (sessionId: string) => {
+      mutateSessions();
+      setActiveSessionId(sessionId);
+      setView("session");
+    },
+    [mutateSessions]
+  );
+
+  const handleIntakeCancel = useCallback(() => {
+    setView("list");
+  }, []);
+
+  // --- Delete ---
+
+  const handleSessionDeleted = useCallback(
+    (deletedId: string) => {
+      mutateSessions();
+      // If the currently active session was deleted, go back to list
+      if (activeSessionId === deletedId) {
+        setActiveSessionId(null);
+        setView("list");
+      }
+    },
+    [activeSessionId, mutateSessions]
+  );
+
+  const handleDeleteActiveSession = useCallback(() => {
+    setDeleteDialogOpen(true);
+  }, []);
+
+  const handleActiveSessionDeleted = useCallback(() => {
+    mutateSessions();
+    setActiveSessionId(null);
+    setView("list");
+    setDeleteDialogOpen(false);
+  }, [mutateSessions]);
+
+  // --- Session actions ---
+
+  const handleSendMessage = useCallback(
+    async (content: string) => {
+      if (!activeSessionId) return;
+      try {
+        await fetch(`/api/deep-research/sessions/${activeSessionId}/message`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ content }),
+        });
+        mutateMessages();
+        mutateSession();
+      } catch {
+        toast.error("Failed to send message");
+      }
+    },
+    [activeSessionId, mutateMessages, mutateSession]
+  );
+
+  const handleApprove = useCallback(
+    async (nodeId: string, approved: boolean, feedback?: string) => {
+      if (!activeSessionId) return;
+      try {
+        await fetch(`/api/deep-research/sessions/${activeSessionId}/approve`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ nodeId, approved, feedback }),
+        });
+        mutateSession();
+      } catch {
+        toast.error("Failed to process approval");
+      }
+    },
+    [activeSessionId, mutateSession]
+  );
+
+  const handleConfirm = useCallback(
+    async (nodeId: string, outcome: ConfirmationOutcome, feedback?: string) => {
+      if (!activeSessionId) return;
+      try {
+        const res = await fetch(`/api/deep-research/sessions/${activeSessionId}/confirm`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ nodeId, outcome, feedback }),
+        });
+        if (!res.ok) {
+          const data = await res.json();
+          throw new Error(data.error || "Failed to confirm");
+        }
+        mutateSession();
+        toast.success(
+          outcome === "confirmed"
+            ? "Confirmed — continuing research"
+            : outcome === "stopped"
+              ? "Research stopped"
+              : `Feedback sent: ${outcome.replace("_", " ")}`
+        );
+      } catch (err) {
+        toast.error(err instanceof Error ? err.message : "Failed to process confirmation");
+      }
+    },
+    [activeSessionId, mutateSession]
+  );
+
+  const handleStartRun = useCallback(async () => {
+    if (!activeSessionId) return;
+    try {
+      const res = await fetch(`/api/deep-research/sessions/${activeSessionId}/run`, {
+        method: "POST",
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || "Failed to start");
+      }
+      mutateSession();
+      toast.success("Research started");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to start research");
+    }
+  }, [activeSessionId, mutateSession]);
+
+  const handleNodeSelect = useCallback((nodeId: string) => {
+    setSelectedNodeId(nodeId);
+    setDrawerOpen(true);
+  }, []);
+
+  // --- Render views ---
+
+  if (view === "intake") {
+    return (
+      <IntakeScreen
+        workspaceId={workspaceId}
+        onCreated={handleIntakeCreated}
+        onCancel={handleIntakeCancel}
+      />
+    );
+  }
+
+  if (view === "list" || !activeSessionId || !session) {
+    return (
+      <SessionList
+        sessions={sessions}
+        onSelect={handleOpenSession}
+        onCreateNew={handleStartIntake}
+        onDeleted={handleSessionDeleted}
+      />
+    );
+  }
+
+  // Active session view
+  const isRunning = session.status === "running";
+  const isAwaitingConfirmation = session.status === "awaiting_user_confirmation";
+  const isCompleted = session.status === "completed";
+  const isFailed = session.status === "failed";
+  const canStart = ["intake", "paused", "awaiting_approval"].includes(session.status);
+
+  return (
+    <div className="flex flex-col h-full">
+      {/* Toolbar */}
+      <div className="flex items-center gap-2 px-3 py-1.5 border-b border-border/50 bg-muted/30 shrink-0">
+        <Select
+          value={activeSessionId}
+          onValueChange={(v) => handleOpenSession(v)}
+        >
+          <SelectTrigger className="h-7 w-[200px] text-xs">
+            <SelectValue placeholder="Select session" />
+          </SelectTrigger>
+          <SelectContent>
+            {sessions.map((s) => (
+              <SelectItem key={s.id} value={s.id} className="text-xs">
+                {s.title}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+
+        <div className="flex-1" />
+
+        {canStart && (
+          <Button size="sm" className="h-7 px-2 gap-1" onClick={handleStartRun}>
+            <Play className="h-3 w-3" />
+            <span className="text-xs">{session.status === "intake" ? "Start" : "Resume"}</span>
+          </Button>
+        )}
+
+        {isAwaitingConfirmation && (
+          <div className="flex items-center gap-1.5 text-xs text-amber-600 dark:text-amber-400">
+            <div className="h-2 w-2 rounded-full bg-amber-500 animate-pulse" />
+            Awaiting your confirmation
+          </div>
+        )}
+
+        {isCompleted && (
+          <div className="flex items-center gap-1.5 text-xs text-green-600 dark:text-green-400">
+            <div className="h-2 w-2 rounded-full bg-green-500" />
+            Completed
+          </div>
+        )}
+
+        {isFailed && (
+          <div className="flex items-center gap-1.5 text-xs text-red-600 dark:text-red-400">
+            <div className="h-2 w-2 rounded-full bg-red-500" />
+            Failed
+          </div>
+        )}
+
+        <Button
+          size="sm"
+          variant="ghost"
+          className="h-7 w-7 p-0 text-muted-foreground hover:text-red-600"
+          onClick={handleDeleteActiveSession}
+          title="Delete session"
+        >
+          <Trash2 className="h-3.5 w-3.5" />
+        </Button>
+
+        <Button
+          size="sm"
+          variant="ghost"
+          className="h-7 px-2 gap-1"
+          onClick={handleBackToList}
+        >
+          <span className="text-xs">Back</span>
+        </Button>
+      </div>
+
+      {/* Main content */}
+      <div className="flex-1 min-h-0">
+        <ResizablePanelGroup orientation="horizontal">
+          {/* Left: Chat + Phase */}
+          <ResizablePanel defaultSize={45} minSize={25}>
+            <div className="flex flex-col h-full">
+              {isCompleted ? (
+                /* Completed: show full report view */
+                <FinalReportView session={session} artifacts={artifacts} />
+              ) : (
+                /* In progress: show phase progress + chat */
+                <>
+                  <PhaseProgress
+                    currentPhase={session.phase}
+                    sessionStatus={session.status}
+                    budget={session.budget}
+                    budgetLimits={session.config.budget}
+                  />
+                  <div className="flex-1 min-h-0">
+                    <ResearchChat
+                      session={session}
+                      messages={messages}
+                      nodes={nodes}
+                      artifacts={artifacts}
+                      onSendMessage={handleSendMessage}
+                      onApprove={handleApprove}
+                      onConfirm={handleConfirm}
+                    />
+                  </div>
+                </>
+              )}
+            </div>
+          </ResizablePanel>
+
+          <ResizableHandle withHandle />
+
+          {/* Right: Workflow graph */}
+          <ResizablePanel defaultSize={55} minSize={25}>
+            <WorkflowGraph nodes={nodes} onNodeSelect={handleNodeSelect} />
+          </ResizablePanel>
+        </ResizablePanelGroup>
+      </div>
+
+      {/* Node detail drawer */}
+      <NodeDetailDrawer
+        node={selectedNode}
+        artifacts={artifacts}
+        events={events}
+        open={drawerOpen}
+        onClose={() => setDrawerOpen(false)}
+        onApprove={handleApprove}
+      />
+
+      {/* Delete dialog for active session */}
+      <DeleteSessionDialog
+        sessionId={session.id}
+        sessionTitle={session.title}
+        open={deleteDialogOpen}
+        onOpenChange={setDeleteDialogOpen}
+        onDeleted={handleActiveSessionDeleted}
+      />
+    </div>
+  );
+}
