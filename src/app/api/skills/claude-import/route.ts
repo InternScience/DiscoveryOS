@@ -5,7 +5,10 @@ import os from "os";
 import { insertSkill, parseSkillMd } from "@/lib/db/skills-insert";
 
 /** Resolve the Claude Code config directory.
- *  Defaults to ~/.claude but can be overridden via the request body. */
+ *  Defaults to ~/.claude but can be overridden via the request body,
+ *  while still remaining within the ~/.claude directory tree. */
+const DEFAULT_CLAUDE_DIR = path.join(os.homedir(), ".claude");
+
 function resolveClaudeDir(customPath?: string): string {
   if (customPath) {
     // Resolve relative to home dir if path starts with ~
@@ -27,7 +30,22 @@ function resolveClaudeDir(customPath?: string): string {
     }
     return path.resolve(customPath);
   }
-  return path.join(os.homedir(), ".claude");
+  return DEFAULT_CLAUDE_DIR;
+}
+
+/** Ensure the target directory stays within the allowed Claude directory tree. */
+function isWithinClaudeDir(targetDir: string): boolean {
+  const base = path.resolve(DEFAULT_CLAUDE_DIR);
+  const target = path.resolve(targetDir);
+
+  // Normalize case on Windows by comparing lowercase strings.
+  const baseNorm = process.platform === "win32" ? base.toLowerCase() : base;
+  const targetNorm = process.platform === "win32" ? target.toLowerCase() : target;
+
+  return (
+    targetNorm === baseNorm ||
+    targetNorm.startsWith(baseNorm + path.sep)
+  );
 }
 
 /** Safely read a file, returning null on any error */
@@ -93,9 +111,13 @@ export async function POST(request: NextRequest) {
 
     const claudeDir = resolveClaudeDir(claudePath);
 
-    // Security: reject paths that aren't absolute (shouldn't happen after resolve,
-    // but ensures no null bytes or other injection)
-    if (!path.isAbsolute(claudeDir) || claudeDir.includes("\0")) {
+    // Security: reject paths that aren't absolute, contain null bytes, or
+    // escape the allowed ~/.claude directory tree.
+    if (
+      !path.isAbsolute(claudeDir) ||
+      claudeDir.includes("\0") ||
+      !isWithinClaudeDir(claudeDir)
+    ) {
       return NextResponse.json(
         { error: "Invalid Claude Code path" },
         { status: 400 }
@@ -162,7 +184,11 @@ export async function GET(request: NextRequest) {
     const claudePath = searchParams.get("path") || undefined;
     const claudeDir = resolveClaudeDir(claudePath);
 
-    if (!path.isAbsolute(claudeDir) || claudeDir.includes("\0")) {
+    if (
+      !path.isAbsolute(claudeDir) ||
+      claudeDir.includes("\0") ||
+      !isWithinClaudeDir(claudeDir)
+    ) {
       return NextResponse.json(
         { error: "Invalid Claude Code path" },
         { status: 400 }
