@@ -9,7 +9,20 @@ import { insertSkill, parseSkillMd } from "@/lib/db/skills-insert";
 function resolveClaudeDir(customPath?: string): string {
   if (customPath) {
     // Resolve relative to home dir if path starts with ~
+    if (customPath === "~") {
+      return os.homedir();
+    }
+    if (
+      customPath.startsWith("~" + path.sep) ||
+      customPath.startsWith("~/") ||
+      customPath.startsWith("~\\")
+    ) {
+      // Strip leading "~/", "~\" or "~" + path.sep before joining
+      const relativeFromHome = customPath.slice(2);
+      return path.join(os.homedir(), relativeFromHome);
+    }
     if (customPath.startsWith("~")) {
+      // Fallback: treat anything else starting with "~" as relative to home
       return path.join(os.homedir(), customPath.slice(1));
     }
     return path.resolve(customPath);
