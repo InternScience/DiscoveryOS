@@ -1,4 +1,4 @@
-import { useCallback, useRef } from "react";
+import { useCallback, useState } from "react";
 import type { Article, ArticleSource } from "@/lib/article-search/types";
 
 const STORAGE_KEY = "paperStudy.cache";
@@ -71,11 +71,8 @@ function readCache(): PaperStudyCacheData | null {
  * `saveCache` writes the current state snapshot to localStorage.
  */
 export function usePaperStudyCache() {
-  // Read cache only once, on mount
-  const cachedState = useRef<PaperStudyCacheData | null | undefined>(undefined);
-  if (cachedState.current === undefined) {
-    cachedState.current = readCache();
-  }
+  // Read cache only once, on mount (lazy initializer)
+  const [cachedState] = useState<PaperStudyCacheData | null>(() => readCache());
 
   const saveCache = useCallback((state: PaperStudyCacheData) => {
     try {
@@ -86,5 +83,5 @@ export function usePaperStudyCache() {
     }
   }, []);
 
-  return { cachedState: cachedState.current, saveCache } as const;
+  return { cachedState, saveCache } as const;
 }
