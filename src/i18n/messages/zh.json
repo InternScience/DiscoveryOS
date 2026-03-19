@@ -505,7 +505,22 @@
     "claudeCodePathPlaceholder": "~/.claude（默认）",
     "claudeCodeScan": "从 Claude Code 导入",
     "claudeCodeScanning": "扫描中...",
-    "claudeCodeNoSkills": "未在 Claude Code 目录中找到技能：{path}"
+    "claudeCodeNoSkills": "未在 Claude Code 目录中找到技能：{path}",
+    "clawHubImport": "从 ClawHub 导入",
+    "clawHubImportTitle": "从 ClawHub 导入 Skill",
+    "clawHubUrlLabel": "Skill 名称或 URL",
+    "clawHubUrlPlaceholder": "https://clawhub.ai/owner/skill-name",
+    "clawHubSlugLabel": "目标文件夹名",
+    "clawHubSlugPlaceholder": "skill-name",
+    "clawHubWorkspaceLabel": "导入到目录",
+    "clawHubWorkspaceGlobal": "全局（所有工作区）",
+    "clawHubBrowseWorkspaces": "浏览 WORKSPACE_ROOTS",
+    "clawHubImportNote": "导入后自动在 AuralID 中注册该 Skill（优先使用 SKILL.md）",
+    "clawHubInvalidUrl": "无效的 ClawHub URL，请输入 https://clawhub.ai/owner/skill-name 格式",
+    "clawHubFetchError": "无法从 ClawHub 获取技能定义",
+    "clawHubNoContent": "在 ClawHub 上未找到技能定义",
+    "clawHubImportSuccess": "已从 ClawHub 成功导入技能「{name}」",
+    "clawHubFolderEmpty": "此文件夹为空"
   },
   "cluster": {
     "clusterToggle": "集群",

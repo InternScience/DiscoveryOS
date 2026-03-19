@@ -6,13 +6,14 @@ import { Header } from "@/components/layout/header";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { PageBackground } from "@/components/ui/page-background";
-import { Plus, Download, Sparkles, Zap, Brain, Code2 } from "lucide-react";
+import { Plus, Download, Sparkles, Zap, Brain, Code2, Globe } from "lucide-react";
 import { toast } from "sonner";
 import { useSkills } from "@/lib/hooks/use-skills";
 import { useMounted } from "@/lib/hooks/use-mounted";
 import { SkillList } from "@/components/skills/skill-list";
 import { SkillMdFormDialog } from "@/components/skills/skill-md-form-dialog";
 import { SkillImportDialog } from "@/components/skills/skill-import-dialog";
+import { SkillClawHubImportDialog } from "@/components/skills/skill-clawhub-import-dialog";
 import type { Skill, SkillStep, SkillParameter } from "@/types";
 
 const FEATURES = [
@@ -26,6 +27,7 @@ export default function SkillsPage() {
   const { skills, isLoading, mutate } = useSkills(null);
   const [formOpen, setFormOpen] = useState(false);
   const [importOpen, setImportOpen] = useState(false);
+  const [clawHubImportOpen, setClawHubImportOpen] = useState(false);
   const [editingSkill, setEditingSkill] = useState<Skill | null>(null);
   const mounted = useMounted();
 
@@ -185,6 +187,15 @@ export default function SkillsPage() {
                 {t("import")}
               </Button>
               <Button
+                variant="outline"
+                size="lg"
+                className="gap-2 group border-border/50 hover:border-primary/50 transition-all"
+                onClick={() => setClawHubImportOpen(true)}
+              >
+                <Globe className="h-4 w-4 transition-transform group-hover:scale-110" />
+                {t("clawHubImport")}
+              </Button>
+              <Button
                 size="lg"
                 className="gap-2 group cyber-btn text-white"
                 onClick={handleCreate}
@@ -262,6 +273,12 @@ export default function SkillsPage() {
       <SkillImportDialog
         open={importOpen}
         onOpenChange={setImportOpen}
+        onImported={mutate}
+      />
+
+      <SkillClawHubImportDialog
+        open={clawHubImportOpen}
+        onOpenChange={setClawHubImportOpen}
         onImported={mutate}
       />
     </div>
