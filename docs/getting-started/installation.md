@@ -22,7 +22,7 @@ Optional:
 ## Step 1: Clone the Repository
 
 ```bash
-git clone https://github.com/zjowowen/InnoClaw.git
+git clone https://github.com/SpectrAI-Initiative/InnoClaw.git
 cd InnoClaw
 ```
 

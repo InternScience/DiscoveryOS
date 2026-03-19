@@ -15,10 +15,10 @@
 <p align="center">
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-Apache%202.0-blue.svg" alt="Apache 2.0 License"></a>
   <a href="package.json"><img src="https://img.shields.io/badge/Node.js-20%2B-339933?logo=node.js&logoColor=white" alt="Node.js 20+"></a>
-  <a href="https://github.com/zjowowen/InnoClaw/actions/workflows/ci.yml"><img src="https://github.com/zjowowen/InnoClaw/actions/workflows/ci.yml/badge.svg" alt="CI Status"></a>
-  <a href="https://zjowowen.github.io/InnoClaw/"><img src="https://img.shields.io/badge/Docs-Online-blue?logo=gitbook&logoColor=white" alt="Online Docs"></a>
-  <a href="https://github.com/zjowowen/InnoClaw/stargazers"><img src="https://img.shields.io/github/stars/zjowowen/InnoClaw?style=flat&logo=github" alt="GitHub Stars"></a>
-  <a href="https://github.com/zjowowen/InnoClaw/issues"><img src="https://img.shields.io/github/issues/zjowowen/InnoClaw" alt="GitHub Issues"></a>
+  <a href="https://github.com/SpectrAI-Initiative/InnoClaw/actions/workflows/ci.yml"><img src="https://github.com/SpectrAI-Initiative/InnoClaw/actions/workflows/ci.yml/badge.svg" alt="CI Status"></a>
+  <a href="https://SpectrAI-Initiative.github.io/InnoClaw/"><img src="https://img.shields.io/badge/Docs-Online-blue?logo=gitbook&logoColor=white" alt="Online Docs"></a>
+  <a href="https://github.com/SpectrAI-Initiative/InnoClaw/stargazers"><img src="https://img.shields.io/github/stars/SpectrAI-Initiative/InnoClaw?style=flat&logo=github" alt="GitHub Stars"></a>
+  <a href="https://github.com/SpectrAI-Initiative/InnoClaw/issues"><img src="https://img.shields.io/github/issues/SpectrAI-Initiative/InnoClaw" alt="GitHub Issues"></a>
 </p>
 
 <p align="center">
@@ -26,7 +26,7 @@
 </p>
 
 <p align="center">
-  <a href="https://zjowowen.github.io/InnoClaw/">Documentation</a> · <a href="#quick-start">Quick Start</a> · <a href="#community-support">Community</a>
+  <a href="https://SpectrAI-Initiative.github.io/InnoClaw/">Documentation</a> · <a href="#quick-start">Quick Start</a> · <a href="#community-support">Community</a>
 </p>
 
 InnoClaw turns server-side folders into AI-native workspaces for grounded chat, paper study, scientific workflows, and research execution.
@@ -113,7 +113,7 @@ Instead of juggling separate tools for files, notes, literature review, and auto
 ## 🚀 Quick Start
 
 ```bash
-git clone https://github.com/zjowowen/InnoClaw.git
+git clone https://github.com/SpectrAI-Initiative/InnoClaw.git
 cd InnoClaw
 npm install
 npm run dev
@@ -208,16 +208,16 @@ Go from code inspection to job submission and result analysis inside a guided ex
 
 ## 💬 Community & Support
 
-- **Need setup or usage help?** Start with the docs at https://zjowowen.github.io/InnoClaw/
-- **Found a bug or want a feature?** Open an issue at https://github.com/zjowowen/InnoClaw/issues
+- **Need setup or usage help?** Start with the docs at https://SpectrAI-Initiative.github.io/InnoClaw/
+- **Found a bug or want a feature?** Open an issue at https://github.com/SpectrAI-Initiative/InnoClaw/issues
 - **Want direct discussion?** Join the Feishu community from `docs/README_CN.md`
 
 ## ℹ️ Project Info
 
 - **License** - Apache-2.0, see `LICENSE`
-- **Repository** - https://github.com/zjowowen/InnoClaw
-- **Docs** - https://zjowowen.github.io/InnoClaw/
+- **Repository** - https://github.com/SpectrAI-Initiative/InnoClaw
+- **Docs** - https://SpectrAI-Initiative.github.io/InnoClaw/
 
 ## ⭐ Star History
 
-[![Star History Chart](https://api.star-history.com/svg?repos=zjowowen/InnoClaw&type=Date)](https://star-history.com/#zjowowen/InnoClaw&Date)
+[![Star History Chart](https://api.star-history.com/svg?repos=SpectrAI-Initiative/InnoClaw&type=Date)](https://star-history.com/#SpectrAI-Initiative/InnoClaw&Date)

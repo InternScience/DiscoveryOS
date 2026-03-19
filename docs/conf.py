@@ -45,7 +45,7 @@ exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
 html_theme = "shibuya"
 
 html_theme_options = {
-    "github_url": "https://github.com/zjowowen/InnoClaw",
+    "github_url": "https://github.com/SpectrAI-Initiative/InnoClaw",
     "nav_links": [
         {"title": "Getting Started", "url": "getting-started/overview"},
         {"title": "Usage", "url": "usage/features"},
@@ -53,7 +53,7 @@ html_theme_options = {
     ],
 }
 
-html_baseurl = "https://zjowowen.github.io/InnoClaw/"
+html_baseurl = "https://SpectrAI-Initiative.github.io/InnoClaw/"
 
 html_context = {
     "languages": [
@@ -68,7 +68,7 @@ html_title = "InnoClaw Documentation"
 
 # -- Options for linkcheck ---------------------------------------------------
 linkcheck_ignore = [
-    r"https://github\.com/zjowowen/InnoClaw/(issues|pulls|actions)",
+    r"https://github\.com/SpectrAI-Initiative/InnoClaw/(issues|pulls|actions)",
 ]
 
 # -- Options for sphinxcontrib-mermaid ---------------------------------------

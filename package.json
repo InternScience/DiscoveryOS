@@ -16,11 +16,11 @@
   "license": "Apache-2.0",
   "repository": {
     "type": "git",
-    "url": "https://github.com/zjowowen/InnoClaw.git"
+    "url": "https://github.com/SpectrAI-Initiative/InnoClaw.git"
   },
-  "homepage": "https://zjowowen.github.io/InnoClaw/",
+  "homepage": "https://SpectrAI-Initiative.github.io/InnoClaw/",
   "bugs": {
-    "url": "https://github.com/zjowowen/InnoClaw/issues"
+    "url": "https://github.com/SpectrAI-Initiative/InnoClaw/issues"
   },
   "engines": {
     "node": ">=20.0.0"

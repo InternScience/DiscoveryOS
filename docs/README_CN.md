@@ -15,10 +15,10 @@
 <p align="center">
   <a href="../LICENSE"><img src="https://img.shields.io/badge/License-Apache%202.0-blue.svg" alt="Apache 2.0 License"></a>
   <a href="../package.json"><img src="https://img.shields.io/badge/Node.js-20%2B-339933?logo=node.js&logoColor=white" alt="Node.js 20+"></a>
-  <a href="https://github.com/zjowowen/InnoClaw/actions/workflows/ci.yml"><img src="https://github.com/zjowowen/InnoClaw/actions/workflows/ci.yml/badge.svg" alt="CI Status"></a>
-  <a href="https://zjowowen.github.io/InnoClaw/"><img src="https://img.shields.io/badge/Docs-Online-blue?logo=gitbook&logoColor=white" alt="Online Docs"></a>
-  <a href="https://github.com/zjowowen/InnoClaw/stargazers"><img src="https://img.shields.io/github/stars/zjowowen/InnoClaw?style=flat&logo=github" alt="GitHub Stars"></a>
-  <a href="https://github.com/zjowowen/InnoClaw/issues"><img src="https://img.shields.io/github/issues/zjowowen/InnoClaw" alt="GitHub Issues"></a>
+  <a href="https://github.com/SpectrAI-Initiative/InnoClaw/actions/workflows/ci.yml"><img src="https://github.com/SpectrAI-Initiative/InnoClaw/actions/workflows/ci.yml/badge.svg" alt="CI Status"></a>
+  <a href="https://SpectrAI-Initiative.github.io/InnoClaw/"><img src="https://img.shields.io/badge/Docs-Online-blue?logo=gitbook&logoColor=white" alt="Online Docs"></a>
+  <a href="https://github.com/SpectrAI-Initiative/InnoClaw/stargazers"><img src="https://img.shields.io/github/stars/SpectrAI-Initiative/InnoClaw?style=flat&logo=github" alt="GitHub Stars"></a>
+  <a href="https://github.com/SpectrAI-Initiative/InnoClaw/issues"><img src="https://img.shields.io/github/issues/SpectrAI-Initiative/InnoClaw" alt="GitHub Issues"></a>
 </p>
 
 <p align="center">
@@ -26,7 +26,7 @@
 </p>
 
 <p align="center">
-  <a href="https://zjowowen.github.io/InnoClaw/">完整文档</a> · <a href="#cn-quick-start">快速开始</a> · <a href="#cn-community-support">社区交流</a>
+  <a href="https://SpectrAI-Initiative.github.io/InnoClaw/">完整文档</a> · <a href="#cn-quick-start">快速开始</a> · <a href="#cn-community-support">社区交流</a>
 </p>
 
 > 此翻译页可能会略晚于英文主页 `README.md` 更新。
@@ -109,7 +109,7 @@ InnoClaw 是一个面向研究工作的可自托管 Web 应用，把工作空间
 ## 🚀 快速开始
 
 ```bash
-git clone https://github.com/zjowowen/InnoClaw.git
+git clone https://github.com/SpectrAI-Initiative/InnoClaw.git
 cd InnoClaw
 npm install
 npm run dev
@@ -204,8 +204,8 @@ npm run dev
 
 ## 💬 社区与支持
 
-- **想查看安装、使用和部署说明？** 先看完整文档：https://zjowowen.github.io/InnoClaw/
-- **想反馈 Bug 或提出功能建议？** 访问 GitHub Issues：https://github.com/zjowowen/InnoClaw/issues
+- **想查看安装、使用和部署说明？** 先看完整文档：https://SpectrAI-Initiative.github.io/InnoClaw/
+- **想反馈 Bug 或提出功能建议？** 访问 GitHub Issues：https://github.com/SpectrAI-Initiative/InnoClaw/issues
 - **想直接交流？** 可加入下方飞书体验群
 
 <img src="../site/social/飞书体验群.png" alt="InnoClaw 飞书体验群" width="200" />
@@ -215,9 +215,9 @@ npm run dev
 ## ℹ️ 项目信息
 
 - **许可证** - Apache-2.0，详见 `../LICENSE`
-- **仓库地址** - https://github.com/zjowowen/InnoClaw
-- **文档站点** - https://zjowowen.github.io/InnoClaw/
+- **仓库地址** - https://github.com/SpectrAI-Initiative/InnoClaw
+- **文档站点** - https://SpectrAI-Initiative.github.io/InnoClaw/
 
 ## ⭐ Star History
 
-[![Star History Chart](https://api.star-history.com/svg?repos=zjowowen/InnoClaw&type=Date)](https://star-history.com/#zjowowen/InnoClaw&Date)
+[![Star History Chart](https://api.star-history.com/svg?repos=SpectrAI-Initiative/InnoClaw&type=Date)](https://star-history.com/#SpectrAI-Initiative/InnoClaw&Date)

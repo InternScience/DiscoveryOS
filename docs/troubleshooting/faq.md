@@ -188,6 +188,6 @@ PORT=8080 npm run start
 
 ## Getting Help
 
-- **GitHub Issues** — [Report bugs or request features](https://github.com/zjowowen/InnoClaw/issues)
+- **GitHub Issues** — [Report bugs or request features](https://github.com/SpectrAI-Initiative/InnoClaw/issues)
 - **Documentation** — You're reading it! Check other sections for specific topics
 - **Source Code** — The code is well-structured and documented; see [Project Structure](../development/project-structure.md)

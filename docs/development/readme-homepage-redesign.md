@@ -90,7 +90,7 @@ Purpose: give the shortest working path.
 This should be much shorter than the current README install section. Keep it to:
 
 ```bash
-git clone https://github.com/zjowowen/InnoClaw.git
+git clone https://github.com/SpectrAI-Initiative/InnoClaw.git
 cd InnoClaw
 npm install
 npm run dev
@@ -269,7 +269,7 @@ One-line positioning statement.
 
 English | [Chinese](docs/README_CN.md) | [Japanese](docs/README_JA.md) | [French](docs/README_FR.md) | [German](docs/README_DE.md)
 
-[Documentation](https://zjowowen.github.io/InnoClaw/) | [Quick Start](#quick-start) | [Community](#community)
+[Documentation](https://SpectrAI-Initiative.github.io/InnoClaw/) | [Quick Start](#quick-start) | [Community](#community)
 
 ---
 
@@ -287,7 +287,7 @@ Short product description.
 ## Quick Start
 
 ```bash
-git clone https://github.com/zjowowen/InnoClaw.git
+git clone https://github.com/SpectrAI-Initiative/InnoClaw.git
 cd InnoClaw
 npm install
 npm run dev
