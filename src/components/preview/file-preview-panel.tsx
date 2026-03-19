@@ -42,29 +42,52 @@ const MarkdownPreview = dynamic(
   },
 );
 
+// Lazy-load CodePreview so highlight.js is only fetched when a code file is opened
+const CodePreview = dynamic(
+  () =>
+    import("@/components/preview/code-preview").then(
+      (mod) => mod.CodePreview,
+    ),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="flex h-full items-center justify-center">
+        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+      </div>
+    ),
+  },
+);
+
 interface FilePreviewPanelProps {
   filePath: string | null;
   onClose: () => void;
   onStudyPaper?: (filePath: string) => void;
 }
 
-const EDITABLE_EXTS = [
-  "txt", "json", "csv", "html", "css", "js", "ts", "tsx", "jsx",
-  "py", "yaml", "yml", "xml", "toml", "ini", "cfg", "env", "sh", "bat",
-  "log", "conf", "c", "cpp", "h", "hpp", "java", "go", "rs", "rb", "php",
+const PLAIN_TEXT_EXTS = ["txt", "log", "csv", "env", "ini", "cfg", "conf"];
+const CODE_EXTS = [
+  "json", "html", "css", "js", "ts", "tsx", "jsx",
+  "py", "yaml", "yml", "xml", "toml", "sh", "bat",
+  "c", "cpp", "h", "hpp", "java", "go", "rs", "rb", "php",
+  "sql", "r", "scala", "kt", "swift", "dart", "lua", "pl", "pm", "groovy",
+  "scss", "sass", "less", "graphql", "proto",
 ];
 const MOL_EXTS = ["pdb", "mol", "mol2", "sdf", "sd", "xyz", "cif"];
 const CAD_EXTS = ["stl", "obj", "ply", "vtk", "vtp", "gltf", "glb", "fbx", "dae", "3ds", "3mf", "pcd"];
 const IMAGE_EXTS = ["png", "jpg", "jpeg", "gif", "svg", "webp", "bmp", "ico"];
 
 function getFileType(filePath: string) {
-  const ext = filePath.split(".").pop()?.toLowerCase() ?? "";
+  const filename = filePath.split("/").pop()?.toLowerCase() ?? "";
+  const ext = filename.split(".").pop()?.toLowerCase() ?? "";
+  // Special filenames without extensions
+  if (filename === "dockerfile" || filename === "makefile") return "code" as const;
   if (ext === "pdf") return "pdf" as const;
   if (ext === "md" || ext === "markdown") return "markdown" as const;
   if (MOL_EXTS.includes(ext)) return "mol" as const;
   if (CAD_EXTS.includes(ext)) return "cad" as const;
   if (IMAGE_EXTS.includes(ext)) return "image" as const;
-  if (EDITABLE_EXTS.includes(ext)) return "text" as const;
+  if (CODE_EXTS.includes(ext)) return "code" as const;
+  if (PLAIN_TEXT_EXTS.includes(ext)) return "text" as const;
   return "unknown" as const;
 }
 
@@ -222,6 +245,8 @@ export function FilePreviewPanel({ filePath, onClose, onStudyPaper }: FilePrevie
           <CadViewer filePath={filePath} />
         ) : fileType === "image" ? (
           <ImagePreview filePath={filePath} />
+        ) : fileType === "code" ? (
+          <CodePreview filePath={filePath} />
         ) : fileType === "text" ? (
           <TextPreview filePath={filePath} />
         ) : (
