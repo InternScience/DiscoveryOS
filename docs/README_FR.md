@@ -47,9 +47,16 @@ Il s'adresse aux chercheurs, developpeurs, laboratoires et adeptes du self-hosti
 
 <!-- whats-new-start -->
 
+#### 2026-03-19
+- **Importation de competences ClawHub**: Nouvelle integration pour importer des competences directement depuis ClawHub via un point d'API dedie et une boite de dialogue d'importation
+- **Panneau de previsualisation du code**: Nouveau composant de previsualisation de code integre a l'editeur, avec coloration syntaxique et suivi de l'etat de sauvegarde
+- **Cache de session d'etude**: Couche de mise en cache persistante pour les sessions d'etude de documents, ameliorant les performances de rechargement et la continuite d'etat
+
+
 #### 2026-03-18
 - **Vision Multimodale pour l'Analyse d'Articles**: Les images PDF sont desormais extraites et analysees visuellement lors des sessions de discussion et d'ideation de recherche
 - **Integration des Competences Claude Code**: Importez des competences directement depuis des dossiers locaux ou des projets Claude Code via un nouveau flux d'importation dedie
+
 
 
 #### 2026-03-18
@@ -58,10 +65,12 @@ Il s'adresse aux chercheurs, developpeurs, laboratoires et adeptes du self-hosti
 - **Detection de la capacite vision des fournisseurs** : la configuration des fournisseurs expose maintenant la prise en charge vision pour basculer automatiquement entre contexte multimodal et texte seul.
 
 
+
 #### 2026-03-17
 - **Gestion des profils de jobs distants et durcissement SSH** : prise en charge de la creation, de l'edition et de l'envoi securise de jobs de recherche via SSH
 - **Rendu Markdown riche dans le panneau Agent** : les messages Agent affichent maintenant tableaux, formules LaTeX et blocs de code avec coloration syntaxique
 - **UI de configuration des fournisseurs API** : configuration directe des cles API et endpoints des fournisseurs IA depuis la page Settings
+
 
 
 #### 2026-03-17
@@ -70,15 +79,19 @@ Il s'adresse aux chercheurs, developpeurs, laboratoires et adeptes du self-hosti
 - **Raccourci de soumission directe** : en mode Agent-Long, les soumissions simples peuvent sauter inspect/patch/sync et suivre `listRemoteProfiles -> prepareJobSubmission -> approval -> submitRemoteJob`.
 
 
+
 #### 2026-03-16
 - **Robustesse des discussions d'articles et de l'ideation** : budget de tokens par role augmente de 2 a 2.5x, reessai automatique sur reponses vides ou trop courtes, et erreurs visibles dans l'UI
 - **Contexte article complet** : les agents de discussion et d'ideation recoivent jusqu'a 30k caracteres du texte complet local de l'article, et pas seulement le resume
 - **Correction de l'extraction d'abstract** : extraction heuristique via regex et meilleur prompt IA pour eviter de prendre les noms d'auteurs pour le resume
 
 
+
 #### 2026-03-14
 - **Research Execution Engine** : nouveau systeme d'orchestration de recherche pilote par IA avec profils distants, toggles de capacites, historique d'execution et outils Agent
 - **Section README "What's New" mise a jour automatiquement** : workflow GitHub Actions qui genere et met a jour chaque jour les nouvelles fonctionnalites importantes
+
+
 
 
 
