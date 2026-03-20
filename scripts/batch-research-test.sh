@@ -166,12 +166,12 @@ run_session() {
         nodes=$(curl -sf "${API}/deep-research/sessions/${session_id}/nodes" 2>/dev/null || echo '[]')
         local confirm_node_id
         confirm_node_id=$(echo "$nodes" | jq -r '
-          [.[] | select(.status == "awaiting_user_confirmation" or .status == "checkpoint")] |
+          [.[] | select(.nodeType == "checkpoint" and .status == "awaiting_user_confirmation")] |
           last | .id // empty')
 
         if [[ -z "$confirm_node_id" ]]; then
-          # Fallback: try to find any pending checkpoint node
-          confirm_node_id=$(echo "$nodes" | jq -r '[.[] | select(.nodeType == "checkpoint")] | last | .id // empty')
+          # Fallback: try to find any node that is still awaiting user confirmation
+          confirm_node_id=$(echo "$nodes" | jq -r '[.[] | select(.status == "awaiting_user_confirmation")] | last | .id // empty')
         fi
 
         if [[ -n "$confirm_node_id" ]]; then
