@@ -77,7 +77,7 @@ export default function HomePage() {
             <div className="mb-16 text-center">
               {/* Animated badge */}
               <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-4 py-2 text-sm font-medium text-primary backdrop-blur-sm animate-slide-in-up">
-                <Sparkles className="h-4 w-4 animate-pulse" />
+                <Sparkles className="h-4 w-4" />
                 <span>AI-Powered Research Assistant</span>
               </div>
 
@@ -87,7 +87,7 @@ export default function HomePage() {
                   Welcome to
                 </span>{" "}
                 <span className="relative inline-block animate-slide-in-up [animation-delay:100ms]">
-                  <span className="relative z-10 bg-gradient-to-r from-primary via-accent to-primary bg-[length:200%_auto] bg-clip-text text-transparent animate-[gradient-rotate_3s_linear_infinite]">
+                  <span className="relative z-10 bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent">
                     InnoClaw
                   </span>
                   {/* Glow behind text */}

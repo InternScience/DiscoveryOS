@@ -16,7 +16,7 @@ export function useDeepResearchSessions(workspaceId: string | undefined) {
     : null;
 
   const { data, error, isLoading, mutate } = useSWR<DeepResearchSession[]>(url, fetcher, {
-    refreshInterval: 10_000,
+    refreshInterval: 30_000,
   });
 
   return {
@@ -34,7 +34,7 @@ export function useDeepResearchSession(sessionId: string | undefined) {
     refreshInterval: (latestData) => {
       if (!latestData) return 5000;
       const active = ["running", "intake", "planning", "awaiting_user_confirmation"].includes(latestData.status);
-      return active ? 3000 : 10000;
+      return active ? 5000 : 30000;
     },
   });
 
@@ -50,7 +50,7 @@ export function useDeepResearchMessages(sessionId: string | undefined) {
   const url = sessionId ? `/api/deep-research/sessions/${sessionId}/messages` : null;
 
   const { data, error, isLoading, mutate } = useSWR<DeepResearchMessage[]>(url, fetcher, {
-    refreshInterval: 3000,
+    refreshInterval: 8000,
   });
 
   return {
@@ -65,7 +65,7 @@ export function useDeepResearchNodes(sessionId: string | undefined) {
   const url = sessionId ? `/api/deep-research/sessions/${sessionId}/nodes` : null;
 
   const { data, error, isLoading, mutate } = useSWR<DeepResearchNode[]>(url, fetcher, {
-    refreshInterval: 3000,
+    refreshInterval: 8000,
   });
 
   return {
@@ -90,7 +90,7 @@ export function useDeepResearchArtifacts(
   }
 
   const { data, error, isLoading, mutate } = useSWR<DeepResearchArtifact[]>(url, fetcher, {
-    refreshInterval: 5000,
+    refreshInterval: 15000,
   });
 
   return {
@@ -108,7 +108,7 @@ export function useDeepResearchEvents(sessionId: string | undefined, since?: str
   }
 
   const { data, error, isLoading, mutate } = useSWR<DeepResearchEvent[]>(url, fetcher, {
-    refreshInterval: 2000,
+    refreshInterval: 5000,
   });
 
   return {
@@ -128,7 +128,7 @@ export function useDeepResearchExecutions(sessionId: string | undefined) {
       const hasActive = latestData.some((r) =>
         ["pending", "submitted", "running"].includes(r.status)
       );
-      return hasActive ? 3000 : 10000;
+      return hasActive ? 5000 : 30000;
     },
   });
 

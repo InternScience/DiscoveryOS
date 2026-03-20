@@ -282,10 +282,10 @@ export default function SettingsPage() {
     <div className="flex h-screen flex-col bg-background">
       <Header />
       <ScrollArea className="flex-1">
-        <main className="container max-w-2xl px-4 py-8">
+        <main className="container max-w-5xl px-4 py-8">
           <h1 className="mb-8 text-2xl font-bold">{t("title")}</h1>
 
-          <div className="space-y-6">
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
             {/* Theme Style */}
             <Card>
               <CardHeader>
@@ -385,7 +385,7 @@ export default function SettingsPage() {
             </Card>
 
             {/* AI Provider Settings */}
-            <Card>
+            <Card className="md:col-span-2">
               <CardHeader>
                 <CardTitle>{t("provider")}</CardTitle>
                 <CardDescription>
@@ -508,7 +508,7 @@ export default function SettingsPage() {
             </Card>
 
             {/* API Keys & Endpoints */}
-            <Card>
+            <Card className="md:col-span-2">
               <CardHeader>
                 <CardTitle>{t("apiKeys")}</CardTitle>
                 <CardDescription>
@@ -702,7 +702,7 @@ export default function SettingsPage() {
             </Card>
 
             {/* K8s Cluster Configuration */}
-            <Card>
+            <Card className="md:col-span-2">
               <CardHeader>
                 <CardTitle>{t("k8sCluster")}</CardTitle>
                 <CardDescription>{t("k8sClusterDesc")}</CardDescription>
@@ -838,7 +838,9 @@ export default function SettingsPage() {
             </Card>
 
             {/* Scheduled Tasks */}
-            <ScheduledTasksCard />
+            <div className="md:col-span-2">
+              <ScheduledTasksCard />
+            </div>
           </div>
         </main>
       </ScrollArea>
