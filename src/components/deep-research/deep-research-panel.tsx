@@ -296,6 +296,7 @@ export function DeepResearchPanel({ workspaceId }: DeepResearchPanelProps) {
   }
 
   // Active session view
+  const isRunning = session.status === "running" || session.status === "reviewing" || session.status === "awaiting_resource" || session.status === "literature_in_progress" || session.status === "planning_in_progress" || session.status === "reviewer_battle_in_progress" || session.status === "execution_in_progress" || session.status === "validation_planning_in_progress";
   const isAwaitingConfirmation = session.status === "awaiting_user_confirmation" || session.status === "execution_prepared" || session.status === "awaiting_additional_literature";
   const isCompleted = session.status === "completed" || session.status === "final_report_generated";
   const isFailed = session.status === "failed";
