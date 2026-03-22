@@ -11,6 +11,52 @@ import type {
   RequirementState,
   ReviewerPacket,
 } from "./types";
+import type { SkillCatalogEntry } from "./workspace-skill-loader";
+
+// =============================================================
+// SKILL CATALOG SECTION (shared by main brain and worker prompts)
+// =============================================================
+
+function buildSkillCatalogSection(
+  skillCatalog: SkillCatalogEntry[] | undefined,
+  role: "main_brain" | "worker"
+): string {
+  if (!skillCatalog || skillCatalog.length === 0) return "";
+
+  const skillList = skillCatalog
+    .map(s => `- **/${s.slug}**: ${s.name}${s.description ? " — " + s.description.slice(0, 120) : ""}`)
+    .join("\n");
+
+  if (role === "main_brain") {
+    return `
+
+## Available Workspace Skills
+You have access to ${skillCatalog.length} workspace skills. When planning research tasks, consider whether sub-tasks match available skills. Workers can invoke skills using the **getSkillInstructions** tool to load detailed instructions, then use **bash** to execute the code.
+
+<skill-catalog>
+${skillList}
+</skill-catalog>
+
+### How to Use Skills
+1. When creating worker nodes, note in the node's input if a skill should be used (e.g. "use skill /slug-name").
+2. Workers will automatically detect matching skills and invoke them via getSkillInstructions + bash.
+3. If no skill matches a task, workers proceed with their normal capabilities.`;
+  }
+
+  return `
+
+## Available Skills
+If your task matches a skill below, use the **getSkillInstructions** tool with the skill's slug to load its full workflow, then follow the returned instructions using the **bash** tool to execute the code.
+
+<skill-catalog>
+${skillList}
+</skill-catalog>
+
+### SCP MCP Connection Rules
+When writing Python code that connects to SCP MCP servers:
+1. **API Key**: Always \`import os\` first, then read the SCP Hub API key via \`API_KEY = os.environ["SCP_HUB_API_KEY"]\` in Python. NEVER hardcode the API key.
+2. **Use \`async with\`** for proper connection lifecycle.`;
+}
 
 // =============================================================
 // MAIN BRAIN SYSTEM PROMPT
@@ -26,7 +72,8 @@ export function buildMainBrainSystemPrompt(
   nodes: DeepResearchNode[],
   artifacts: DeepResearchArtifact[],
   phase: Phase,
-  requirementState?: RequirementState | null
+  requirementState?: RequirementState | null,
+  skillCatalog?: SkillCatalogEntry[]
 ): string {
   const nodeStatusSummary = nodes.map((n) =>
     `  - [${n.id.slice(0, 8)}] ${n.label} (${n.nodeType}, ${n.status}, role=${n.assignedRole}, phase=${n.phase})`
@@ -159,7 +206,7 @@ NodeCreationSpec:
 - Workers for bulk work, your reasoning for strategic decisions only.
 - Max worker fan-out: ${session.config.maxWorkerFanOut}
 - Max concurrent workers: ${session.config.maxWorkerConcurrency}
-- Literature bounds: max ${session.config.literature.maxPapersPerRound} papers/round, max ${session.config.literature.maxLiteratureRounds} rounds`;
+- Literature bounds: max ${session.config.literature.maxPapersPerRound} papers/round, max ${session.config.literature.maxLiteratureRounds} rounds${buildSkillCatalogSection(skillCatalog, "main_brain")}`;
 }
 
 // =============================================================
@@ -431,10 +478,12 @@ Respond with JSON:
 {
   "action": "continue" | "revise" | "retry" | "branch" | "supersede" | "stop",
   "reasoning": "Brief explanation",
-  "nodesToCreate": [/* optional */],
+  "nodesToCreate": [{"nodeType": "evidence_gather|execute|...", "label": "task description", "assignedRole": "worker|main_brain|reviewer_a|reviewer_b"}],
   "nextPhase": "optional phase",
   "messageToUser": "optional message"
-}`;
+}
+
+If you include nodesToCreate, each entry MUST have "nodeType", "label", and "assignedRole".`;
 }
 
 // =============================================================
@@ -488,7 +537,8 @@ Be objective. Give weight to specific critiques over vague ones. If reviewers di
 export function buildWorkerSystemPrompt(
   node: DeepResearchNode,
   parentArtifacts: DeepResearchArtifact[],
-  taskType: NodeType
+  taskType: NodeType,
+  skillCatalog?: SkillCatalogEntry[]
 ): string {
   const contextSection = parentArtifacts.length > 0
     ? "## Context Artifacts\n" + parentArtifacts.map((a) =>
@@ -517,7 +567,7 @@ ${node.input ? JSON.stringify(node.input, null, 2) : "(no specific input)"}
 ${contextSection}
 
 ## Output Requirements
-${outputSchema}`;
+${outputSchema}${buildSkillCatalogSection(skillCatalog, "worker")}`;
 }
 
 function getWorkerOutputSchema(taskType: NodeType): string {

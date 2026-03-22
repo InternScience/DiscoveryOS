@@ -775,7 +775,7 @@ async function generateCheckpointContent(
   continueWillDo?: string;
   alternativeNextActions?: string[];
 }> {
-  const { model } = getModelForRole("main_brain", session.config);
+  const { model } = await getModelForRole("main_brain", session.config);
   const budgetCheck = checkBudget("main_brain", session.budget, session.config.budget);
   if (!budgetCheck.allowed) {
     return {
@@ -833,7 +833,7 @@ async function callMainBrainForConfirmation(
 
   const nodes = await store.getNodes(session.id);
   const artifacts = await store.getArtifacts(session.id);
-  const { model } = getModelForRole("main_brain", session.config);
+  const { model } = await getModelForRole("main_brain", session.config);
 
   // Add language context
   const messages = await store.getMessages(session.id);
@@ -884,6 +884,14 @@ async function createNodesFromSpecs(
 ): Promise<DeepResearchNode[]> {
   const created: DeepResearchNode[] = [];
   for (const spec of specs) {
+    // Validate required fields to prevent NOT NULL constraint failures
+    if (!spec.nodeType || !spec.label || !spec.assignedRole) {
+      console.warn(
+        `[deep-research] Skipping invalid node spec (missing required field):`,
+        JSON.stringify(spec).slice(0, 200)
+      );
+      continue;
+    }
     const node = await store.createNode(sessionId, {
       ...spec,
       phase: spec.phase ?? defaultPhase,

@@ -1,6 +1,9 @@
-import { PROVIDERS } from "@/lib/ai/models";
+import { PROVIDERS, DEFAULT_PROVIDER, DEFAULT_MODEL } from "@/lib/ai/models";
 import type { ProviderId } from "@/lib/ai/models";
 import { getModelFromOverride } from "@/lib/ai/provider";
+import { db } from "@/lib/db";
+import { appSettings } from "@/lib/db/schema";
+import { inArray } from "drizzle-orm";
 import type { LanguageModel } from "ai";
 import type {
   ModelRole,
@@ -9,44 +12,9 @@ import type {
   BudgetUsage,
 } from "./types";
 
-// --- Default route chains per role ---
-// Enforces hierarchy: Main Brain = Opus, Reviewers = Sonnet, Workers = Kimi/Sonnet
-
-interface ModelRoute {
-  provider: string;
-  modelId: string;
-}
-
-const DEFAULT_ROUTES: Record<ModelRole, ModelRoute[]> = {
-  // Main Brain: Kimi first for testing, then Opus/Sonnet fallback
-  main_brain: [
-    { provider: "moonshot", modelId: "kimi-k2.5" },
-    { provider: "anthropic", modelId: "claude-opus-4-20250514" },
-    { provider: "anthropic", modelId: "claude-sonnet-4-20250514" },
-  ],
-  // Reviewer A: Kimi first for testing
-  reviewer_a: [
-    { provider: "moonshot", modelId: "kimi-k2.5" },
-    { provider: "anthropic", modelId: "claude-sonnet-4-20250514" },
-  ],
-  // Reviewer B: Kimi first for testing
-  reviewer_b: [
-    { provider: "moonshot", modelId: "kimi-k2.5" },
-    { provider: "anthropic", modelId: "claude-sonnet-4-20250514" },
-  ],
-  // Workers: Kimi first for testing
-  worker: [
-    { provider: "moonshot", modelId: "kimi-k2.5" },
-    { provider: "anthropic", modelId: "claude-sonnet-4-20250514" },
-    { provider: "openai", modelId: "gpt-4o" },
-  ],
-  // Synthesizer: same as main_brain (synthesis needs strong reasoning)
-  synthesizer: [
-    { provider: "moonshot", modelId: "kimi-k2.5" },
-    { provider: "anthropic", modelId: "claude-sonnet-4-20250514" },
-    { provider: "openai", modelId: "gpt-4o" },
-  ],
-};
+// --- Model routing ---
+// All roles use the global model from Settings.
+// No fallback models are configured.
 
 /** Sentinel values that mean "not really configured". */
 const PLACEHOLDER_KEYS = new Set(["none", "null", "undefined", "placeholder", "xxx", "your-api-key-here", ""]);
@@ -59,13 +27,65 @@ function isProviderAvailable(provider: string): boolean {
 }
 
 /**
- * Resolve the model for a given role. Tries config overrides first,
- * then walks the fallback chain until a provider with an API key is found.
+ * Resolve the global model from process.env first, then fall back to DB.
+ * Does NOT check isProviderAvailable — the user explicitly configured it.
  */
-export function getModelForRole(
+async function resolveGlobalModel(): Promise<{ model: LanguageModel; provider: string; modelId: string } | null> {
+  // 1. process.env (updated in-memory by settings PATCH)
+  const envProvider = process.env.LLM_PROVIDER;
+  const envModel = process.env.LLM_MODEL;
+  if (envProvider && envModel) {
+    const { model } = getModelFromOverride(envProvider, envModel);
+    return { model, provider: envProvider, modelId: envModel };
+  }
+
+  // 2. Fallback: read from database
+  try {
+    const settings = await db
+      .select()
+      .from(appSettings)
+      .where(inArray(appSettings.key, ["llm_provider", "llm_model"]));
+    const provider = settings.find((s) => s.key === "llm_provider")?.value || DEFAULT_PROVIDER;
+    const modelId = settings.find((s) => s.key === "llm_model")?.value || DEFAULT_MODEL;
+    const { model } = getModelFromOverride(provider, modelId);
+    return { model, provider, modelId };
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Resolve the current global model info (provider + modelId) without
+ * constructing a LanguageModel instance. Used at session creation time
+ * to snapshot the configured model into the session config.
+ */
+export async function resolveCurrentModelInfo(): Promise<{ provider: string; modelId: string }> {
+  const envProvider = process.env.LLM_PROVIDER;
+  const envModel = process.env.LLM_MODEL;
+  if (envProvider && envModel) {
+    return { provider: envProvider, modelId: envModel };
+  }
+  try {
+    const settings = await db
+      .select()
+      .from(appSettings)
+      .where(inArray(appSettings.key, ["llm_provider", "llm_model"]));
+    const provider = settings.find((s) => s.key === "llm_provider")?.value || DEFAULT_PROVIDER;
+    const modelId = settings.find((s) => s.key === "llm_model")?.value || DEFAULT_MODEL;
+    return { provider, modelId };
+  } catch {
+    return { provider: DEFAULT_PROVIDER, modelId: DEFAULT_MODEL };
+  }
+}
+
+/**
+ * Resolve the model for a given role. Tries config overrides first,
+ * then the session's resolvedModel, then the global model from Settings.
+ */
+export async function getModelForRole(
   role: ModelRole,
   config?: DeepResearchConfig
-): { model: LanguageModel; provider: string; modelId: string } {
+): Promise<{ model: LanguageModel; provider: string; modelId: string }> {
   // Check config overrides first
   const override = config?.modelOverrides?.[role];
   if (override && isProviderAvailable(override.provider)) {
@@ -73,28 +93,30 @@ export function getModelForRole(
     return { model, provider: override.provider, modelId: override.modelId };
   }
 
-  // Walk fallback chain
-  const chain = DEFAULT_ROUTES[role];
-  for (const route of chain) {
-    if (isProviderAvailable(route.provider)) {
-      const { model } = getModelFromOverride(route.provider, route.modelId);
-      return { model, provider: route.provider, modelId: route.modelId };
-    }
+  // Check session-level resolved model (snapshotted at creation time)
+  if (config?.resolvedModel) {
+    const { provider, modelId } = config.resolvedModel;
+    const { model } = getModelFromOverride(provider, modelId);
+    return { model, provider, modelId };
   }
 
+  // Use global model (trust user's Settings config, no availability check)
+  const global = await resolveGlobalModel();
+  if (global) return global;
+
   throw new Error(
-    `No available model for role "${role}". Configure at least one API key for: ${chain.map((r) => r.provider).join(", ")}`
+    `No available model for role "${role}". Please configure a model in Settings.`
   );
 }
 
 /**
- * Get all available models for a role in fallback order.
- * Used by executeWithFallback to retry with the next model on failure.
+ * Get the model for a role (config override or global model).
+ * Returns a single-element array for API compatibility with fallback callers.
  */
-export function getModelChainForRole(
+export async function getModelChainForRole(
   role: ModelRole,
   config?: DeepResearchConfig
-): Array<{ model: LanguageModel; provider: string; modelId: string }> {
+): Promise<Array<{ model: LanguageModel; provider: string; modelId: string }>> {
   const results: Array<{ model: LanguageModel; provider: string; modelId: string }> = [];
 
   // Config override first
@@ -104,15 +126,20 @@ export function getModelChainForRole(
     results.push({ model, provider: override.provider, modelId: override.modelId });
   }
 
-  // Then walk fallback chain
-  const chain = DEFAULT_ROUTES[role];
-  for (const route of chain) {
-    if (isProviderAvailable(route.provider)) {
-      // Avoid duplicates with the override
-      if (!results.some(r => r.provider === route.provider && r.modelId === route.modelId)) {
-        const { model } = getModelFromOverride(route.provider, route.modelId);
-        results.push({ model, provider: route.provider, modelId: route.modelId });
-      }
+  // Session-level resolved model (snapshotted at creation time)
+  if (config?.resolvedModel) {
+    const { provider, modelId } = config.resolvedModel;
+    if (!results.some(r => r.provider === provider && r.modelId === modelId)) {
+      const { model } = getModelFromOverride(provider, modelId);
+      results.push({ model, provider, modelId });
+    }
+  }
+
+  // Then use global model as final fallback
+  if (results.length === 0) {
+    const global = await resolveGlobalModel();
+    if (global && !results.some(r => r.provider === global.provider && r.modelId === global.modelId)) {
+      results.push(global);
     }
   }
 

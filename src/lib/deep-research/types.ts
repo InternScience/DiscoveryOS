@@ -286,6 +286,8 @@ export interface DeepResearchEvent {
 
 export interface DeepResearchConfig {
   modelOverrides?: Partial<Record<ModelRole, { provider: string; modelId: string }>>;
+  /** The model resolved from settings at session creation time. */
+  resolvedModel?: { provider: string; modelId: string };
   budget: BudgetLimits;
   /** Max number of worker nodes created per fan-out. */
   maxWorkerFanOut: number;
@@ -813,6 +815,32 @@ export interface PhaseResult {
   nodesCreated: DeepResearchNode[];
   artifactsCreated: DeepResearchArtifact[];
   checkpoint?: CheckpointPackage;
+}
+
+// =============================================================
+// Actor Runtime Types
+// =============================================================
+
+export interface ActorExecutionContext {
+  session: DeepResearchSession;
+  messages: DeepResearchMessage[];
+  allNodes: DeepResearchNode[];
+  allArtifacts: DeepResearchArtifact[];
+  skillCatalog?: Array<{ slug: string; name: string; description?: string | null }>;
+  skillTools?: Record<string, unknown>;
+}
+
+export interface ActorArtifactDraft {
+  artifactType: ArtifactType;
+  title: string;
+  content: Record<string, unknown>;
+  provenance?: ArtifactProvenance | null;
+}
+
+export interface ActorExecutionResult {
+  output: Record<string, unknown>;
+  artifacts: DeepResearchArtifact[];
+  tokensUsed: number;
 }
 
 // =============================================================

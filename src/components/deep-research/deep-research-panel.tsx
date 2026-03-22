@@ -424,6 +424,7 @@ export function DeepResearchPanel({ workspaceId }: DeepResearchPanelProps) {
                     onRunPhase={handleRunPhase}
                     onSkipPhase={handleSkipPhase}
                     isRunning={isRunning}
+                    resolvedModel={session.config.resolvedModel ?? null}
                   />
                   {/* Tab bar */}
                   <div className="flex gap-0.5 px-2 py-1 border-b border-border/50 bg-muted/20 shrink-0">

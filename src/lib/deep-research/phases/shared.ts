@@ -2,13 +2,13 @@
 // Shared utilities for phase handlers
 // =============================================================
 
-import { generateText } from "ai";
-import { getModelChainForRole, checkBudget, trackUsage } from "../model-router";
 import * as store from "../event-store";
+import { MainBrain } from "../actors/main-brain";
 import { executeNode } from "../node-executor";
 import {
-  buildMainBrainSystemPrompt,
-} from "../prompts";
+  loadWorkspaceSkillCatalog,
+  createWorkspaceSkillTools,
+} from "../workspace-skill-loader";
 import type {
   DeepResearchSession,
   DeepResearchNode,
@@ -19,12 +19,21 @@ import type {
   PhaseContext,
 } from "../types";
 
+const mainBrain = new MainBrain();
+
 export async function buildNodeContext(sessionId: string) {
   const session = (await store.getSession(sessionId))!;
   const messages = await store.getMessages(sessionId);
   const allNodes = await store.getNodes(sessionId);
   const allArtifacts = await store.getArtifacts(sessionId);
-  return { session, messages, allNodes, allArtifacts };
+
+  // Load workspace skills for deep research nodes
+  const skillCatalog = await loadWorkspaceSkillCatalog(session.workspaceId);
+  const skillTools = skillCatalog.length > 0
+    ? await createWorkspaceSkillTools(session.workspaceId)
+    : undefined;
+
+  return { session, messages, allNodes, allArtifacts, skillCatalog, skillTools };
 }
 
 export async function callMainBrain(
@@ -33,67 +42,11 @@ export async function callMainBrain(
   requirementState?: RequirementState | null,
   languageHint?: string
 ): Promise<BrainDecision> {
-  const budgetCheck = checkBudget("main_brain", session.budget, session.config.budget);
-  if (!budgetCheck.allowed) {
-    return {
-      action: "complete",
-      messageToUser: "Budget limit reached. Generating final report.",
-    };
-  }
-
-  const messages = await store.getMessages(session.id);
-  const nodes = await store.getNodes(session.id);
-  const artifacts = await store.getArtifacts(session.id);
-
-  const modelChain = getModelChainForRole("main_brain", session.config);
-  let systemPrompt = buildMainBrainSystemPrompt(session, messages, nodes, artifacts, session.phase, requirementState);
-
-  // Add language instruction if user writes in non-English
-  if (!languageHint) {
-    const userMessages = messages.filter(m => m.role === "user");
-    const lastUserMsg = userMessages[userMessages.length - 1];
-    if (lastUserMsg) {
-      const cjkChars = lastUserMsg.content.match(/[\u4e00-\u9fff\u3400-\u4dbf]/g);
-      if (cjkChars && cjkChars.length > lastUserMsg.content.replace(/\s/g, "").length * 0.1) {
-        languageHint = "zh";
-      }
-    }
-  }
-  if (languageHint && languageHint !== "en") {
-    systemPrompt += `\n\nIMPORTANT: The user communicates in ${languageHint}. Write any messageToUser content in ${languageHint}. Technical terms may remain in English.`;
-  }
-
-  const userMsg = messages.length > 0
-    ? "Continue orchestrating the research based on current state and any new user messages."
-    : "Begin processing the user's research request.";
-
-  // Try each model in the chain with fallback
-  let lastError: Error | null = null;
-  for (const { model, provider, modelId } of modelChain) {
-    try {
-      const result = await generateText({
-        model,
-        system: systemPrompt,
-        messages: [{ role: "user", content: userMsg }],
-        abortSignal,
-      });
-
-      const budget = trackUsage(session.budget, "main_brain", `brain_${session.phase}`, result.usage?.totalTokens ?? 0);
-      await store.updateSession(session.id, { budget });
-
-      try {
-        return extractJsonFromLLMResponse<BrainDecision>(result.text);
-      } catch {
-        return { action: "respond_to_user", messageToUser: result.text };
-      }
-    } catch (error) {
-      lastError = error instanceof Error ? error : new Error(String(error));
-      console.warn(`[callMainBrain] ${provider}/${modelId} failed: ${lastError.message}. Trying next model...`);
-    }
-  }
-
-  // All models failed
-  throw lastError ?? new Error("No available model for main_brain");
+  return mainBrain.decide(session, {
+    abortSignal,
+    requirementState,
+    languageHint,
+  });
 }
 
 export async function createNodesFromSpecs(
@@ -103,6 +56,14 @@ export async function createNodesFromSpecs(
 ): Promise<DeepResearchNode[]> {
   const created: DeepResearchNode[] = [];
   for (const spec of specs) {
+    // Validate required fields to prevent NOT NULL constraint failures
+    if (!spec.nodeType || !spec.label || !spec.assignedRole) {
+      console.warn(
+        `[deep-research] Skipping invalid node spec (missing required field):`,
+        JSON.stringify(spec).slice(0, 200)
+      );
+      continue;
+    }
     const node = await store.createNode(sessionId, {
       ...spec,
       phase: spec.phase ?? defaultPhase,
@@ -133,34 +94,4 @@ export async function executeReadyWorkers(
     ctx = await buildNodeContext(session.id);
     readyNodes = await store.getReadyNodes(session.id);
   }
-}
-
-function extractJsonFromLLMResponse<T>(text: string): T {
-  const fenceMatch = text.match(/```(?:json)?\s*\n?([\s\S]*?)\n?```/);
-  if (fenceMatch) {
-    return JSON.parse(fenceMatch[1].trim()) as T;
-  }
-
-  const firstBrace = text.indexOf("{");
-  if (firstBrace >= 0) {
-    let depth = 0;
-    let inString = false;
-    let escape = false;
-    for (let i = firstBrace; i < text.length; i++) {
-      const ch = text[i];
-      if (escape) { escape = false; continue; }
-      if (ch === "\\") { escape = true; continue; }
-      if (ch === '"') { inString = !inString; continue; }
-      if (inString) continue;
-      if (ch === "{") depth++;
-      if (ch === "}") {
-        depth--;
-        if (depth === 0) {
-          return JSON.parse(text.slice(firstBrace, i + 1)) as T;
-        }
-      }
-    }
-  }
-
-  return JSON.parse(text.trim()) as T;
 }

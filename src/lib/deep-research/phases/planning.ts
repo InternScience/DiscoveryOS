@@ -138,7 +138,7 @@ async function planWithSkillRouting(ctx: PhaseContext): Promise<{
     };
   }
 
-  const { model } = getModelForRole("main_brain", session.config);
+  const { model } = await getModelForRole("main_brain", session.config);
   const messages = await store.getMessages(session.id);
   const nodes = await store.getNodes(session.id);
   const artifacts = await store.getArtifacts(session.id);

@@ -89,6 +89,7 @@ function CustomNode({ data }: NodeProps) {
     nodeType: string;
     status: string;
     assignedRole: string;
+    assignedModel: string | null;
     onClick: () => void;
   };
   const Icon = NODE_ICONS[nodeData.nodeType] || Brain;
@@ -105,10 +106,15 @@ function CustomNode({ data }: NodeProps) {
         <Icon className="h-3.5 w-3.5 shrink-0" />
         <span className={`text-xs font-medium truncate ${isSuperseded ? "line-through" : ""}`}>{nodeData.label}</span>
       </div>
-      <div className="flex items-center gap-1">
+      <div className="flex items-center gap-1 flex-wrap">
         <Badge className={`text-[9px] px-1 py-0 ${ROLE_COLORS[nodeData.assignedRole] || ""}`}>
           {nodeData.assignedRole.replace("_", " ")}
         </Badge>
+        {nodeData.assignedModel && (
+          <span className="text-[8px] text-muted-foreground font-mono truncate max-w-[100px]">
+            {nodeData.assignedModel.split("/").pop()}
+          </span>
+        )}
       </div>
       <Handle type="source" position={Position.Bottom} className="!w-2 !h-2" />
     </div>
@@ -233,6 +239,7 @@ function layoutGraph(
           nodeType: node.nodeType,
           status: node.status,
           assignedRole: node.assignedRole,
+          assignedModel: node.assignedModel,
           phase: node.phase,
           onClick: () => onNodeSelect(node.id),
         },

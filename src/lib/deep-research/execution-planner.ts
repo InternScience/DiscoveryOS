@@ -126,7 +126,7 @@ export async function generateExecutionPlan(
   synthesisArtifacts?: DeepResearchArtifact[],
   abortSignal?: AbortSignal,
 ): Promise<ExecutionPlanFull> {
-  const { model } = getModelForRole("main_brain", session.config);
+  const { model } = await getModelForRole("main_brain", session.config);
   const budgetCheck = checkBudget("main_brain", session.budget, session.config.budget);
 
   if (!budgetCheck.allowed) {

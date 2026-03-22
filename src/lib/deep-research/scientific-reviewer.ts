@@ -10,25 +10,27 @@
 //   - Support for pass / revise / experimental_pivot / reject
 //   - Synthesizer-facing revision request generation
 
-import { generateText } from "ai";
-import { getModelForRole, checkBudget, trackUsage } from "./model-router";
 import * as store from "./event-store";
+import { executeNode } from "./node-executor";
+import { buildNodeContext } from "./phases/shared";
+import {
+  ALL_DIMENSIONS,
+  ALL_ANTI_PATTERNS,
+  DIMENSION_LABELS,
+  buildScientificReviewPrompt,
+  parseScientificReviewPacket,
+} from "./scientific-review-runtime";
 import type {
   DeepResearchSession,
   DeepResearchArtifact,
-  ArtifactProvenance,
   ScientificReviewConfig,
   ScientificReviewPacket,
   ScientificReviewResult,
   ScientificBlocker,
   RepairPath,
-  DimensionScore,
   ReviewDimension,
   ScientificVerdict,
   ReviewIssue,
-  ReviewIssueStatus,
-  AntiPatternFlag,
-  AntiPatternType,
   ReviewRevisionRequest,
   RevisionPoint,
   ValidationCriteria,
@@ -38,54 +40,13 @@ import type {
   ExecutionValidationResult,
 } from "./types";
 
-// -------------------------------------------------------------------
-// Constants
-// -------------------------------------------------------------------
-
-export const ALL_DIMENSIONS: ReviewDimension[] = [
-  "problem_definition",
-  "literature_grounding",
-  "mechanism_validity",
-  "baseline_coverage",
-  "falsifiability",
-  "metric_design",
-  "compute_feasibility",
-  "data_feasibility",
-  "engineering_readiness",
-  "domain_mismatch_risk",
-  "novelty_positioning",
-  "reproducibility",
-  "overclaiming_risk",
-];
-
-export const DIMENSION_LABELS: Record<ReviewDimension, string> = {
-  problem_definition: "Problem Definition",
-  literature_grounding: "Literature Grounding",
-  mechanism_validity: "Mechanism Validity",
-  baseline_coverage: "Baseline Coverage",
-  falsifiability: "Falsifiability",
-  metric_design: "Metric Design",
-  compute_feasibility: "Compute Feasibility",
-  data_feasibility: "Data Feasibility",
-  engineering_readiness: "Engineering Readiness",
-  domain_mismatch_risk: "Domain Mismatch Risk",
-  novelty_positioning: "Novelty Positioning",
-  reproducibility: "Reproducibility",
-  overclaiming_risk: "Overclaiming Risk",
-};
-
-export const ALL_ANTI_PATTERNS: AntiPatternType[] = [
-  "citation_hallucination",
-  "benchmark_mismatch",
-  "metric_cherry_picking",
-  "unfounded_generalization",
-  "missing_ablation",
-  "dataset_contamination_risk",
-  "p_hacking_risk",
-  "survivorship_bias",
-  "scope_creep",
-  "circular_reasoning",
-];
+export {
+  ALL_DIMENSIONS,
+  DIMENSION_LABELS,
+  ALL_ANTI_PATTERNS,
+  buildScientificReviewPrompt,
+  parseScientificReviewPacket,
+} from "./scientific-review-runtime";
 
 /** Max critical blockers allowed per round (anti-loop). */
 const MAX_CRITICAL_BLOCKERS_ROUND_1 = 5;
@@ -391,202 +352,6 @@ export function buildRevisionRequest(
 /**
  * Build a detailed prompt for dimension-based scientific review.
  */
-export function buildScientificReviewPrompt(
-  role: "reviewer_a" | "reviewer_b",
-  claimMapArtifacts: DeepResearchArtifact[],
-  synthesisArtifacts: DeepResearchArtifact[],
-  round: number,
-  maxRounds: number,
-  previousReviewPackets?: ScientificReviewPacket[],
-  issueLedger?: ReviewIssue[],
-): string {
-  const roleLabel = role === "reviewer_a" ? "Reviewer A" : "Reviewer B";
-
-  // Artifacts to review
-  const artifactSection = [...claimMapArtifacts, ...synthesisArtifacts]
-    .map(a => {
-      const contentStr = JSON.stringify(a.content, null, 2);
-      const preview = contentStr.length > 3000 ? contentStr.slice(0, 3000) + "\n... (truncated)" : contentStr;
-      return `### ${a.title} (${a.artifactType})\n${preview}`;
-    })
-    .join("\n\n");
-
-  // Previous round context
-  let previousSection = "";
-  if (previousReviewPackets && previousReviewPackets.length > 0) {
-    const prevByRound = new Map<number, ScientificReviewPacket[]>();
-    for (const p of previousReviewPackets) {
-      const arr = prevByRound.get(p.round) ?? [];
-      arr.push(p);
-      prevByRound.set(p.round, arr);
-    }
-
-    const sections: string[] = [];
-    for (const [r, packets] of prevByRound) {
-      for (const p of packets) {
-        sections.push(`#### Round ${r} — ${p.reviewerRole}\n` +
-          `Verdict: ${p.verdict}, Score: ${p.overallScore}\n` +
-          `Critical Blockers: ${p.criticalBlockers.length}\n` +
-          `Major Issues: ${p.majorIssues.length}\n` +
-          `Anti-Patterns: ${(p.antiPatternFlags ?? []).length}\n` +
-          JSON.stringify(p, null, 2).slice(0, 1500));
-      }
-    }
-    previousSection = `\n## Previous Review Rounds\n${sections.join("\n\n")}`;
-  }
-
-  // Issue ledger context
-  let issueLedgerSection = "";
-  if (issueLedger && issueLedger.length > 0) {
-    const issueLines = issueLedger.map(i =>
-      `- **${i.issueId}** [${i.status}] (${i.severity}) ${i.title} — raised round ${i.raisedInRound} by ${i.raisedBy}`
-    );
-    issueLedgerSection = `\n## Issue Ledger — Track These Issues\nEach issue has a persistent ID. Update status for each:\n${issueLines.join("\n")}\n\nFor each issue, assess: resolved / partially_resolved / open / deferred / blocked.`;
-  }
-
-  // Round-specific instructions (ANTI-LOOP)
-  let roundInstructions: string;
-  if (round === 1) {
-    roundInstructions = `## Round 1 Instructions
-This is the FIRST review round. Your job is to find ALL significant issues.
-- Identify up to ${MAX_CRITICAL_BLOCKERS_ROUND_1} critical blockers (the most important ones)
-- Identify major issues (no cap)
-- For each blocker: specify issue, severity, why it matters, evidence, repair action, and pass condition
-- Score all ${ALL_DIMENSIONS.length} dimensions on a 1-5 scale with justification
-- Run the ANTI-PATTERN CHECKLIST below
-- Choose verdict: pass / revise / experimental_pivot / reject`;
-  } else if (round === 2) {
-    roundInstructions = `## Round 2 Instructions — FOCUS ON PRIOR BLOCKERS
-This is the SECOND review round. Your PRIMARY job is to verify whether Round 1 blockers were addressed.
-- Check each prior issue in the ledger: was it fixed? partially fixed? not addressed?
-- You may add at most ${MAX_NEW_CRITICAL_BLOCKERS_ROUND_2} NEW critical blocker (only if something truly critical was missed)
-- Re-score all dimensions — note improvements or regressions
-- Re-run the ANTI-PATTERN CHECKLIST
-- If all prior critical blockers are resolved and scores improved → consider "pass"
-- If blockers remain but progress is clear → "revise"
-- If foundational issues prevent literature resolution but a pilot experiment is tractable → "experimental_pivot"`;
-  } else {
-    roundInstructions = `## Round ${round} Instructions — FORCED DECISION
-This is the FINAL review round (Round ${round} of ${maxRounds}).
-You MUST choose one of: pass / experimental_pivot / reject
-- "revise" is NOT allowed in the final round
-- NO new blockers may be introduced
-- Evaluate based on the current state of evidence and prior fixes
-- Choose "experimental_pivot" if: foundational literature remains unresolved BUT construct validity can be tested via a tractable pilot experiment
-- Choose "pass" if: all critical blockers are resolved and dimensions are acceptable
-- Choose "reject" ONLY if: fundamental, irreparable flaws remain`;
-  }
-
-  const dimensionList = ALL_DIMENSIONS.map(d =>
-    `- **${d}** (${DIMENSION_LABELS[d]}): Score 1-5, where 1=critical_failure, 2=major_weakness, 3=acceptable, 4=good, 5=excellent`
-  ).join("\n");
-
-  const antiPatternChecklist = ALL_ANTI_PATTERNS.map(p =>
-    `- **${p}**: Check if synthesis exhibits this pattern`
-  ).join("\n");
-
-  const passRubricSection = `## Pass Rubric
-A verdict of "pass" requires ALL of the following:
-- Every dimension score >= ${PASS_RUBRIC.minimumPerDimension}
-- Overall average >= ${PASS_RUBRIC.minimumOverallAverage}
-- Zero open critical issues
-- Zero critical anti-patterns
-- At most ${PASS_RUBRIC.maxOpenMajorIssues} open major issues
-If these criteria are not met, you MUST NOT verdict "pass".`;
-
-  return `You are ${roleLabel} performing a structured scientific review (Round ${round} of ${maxRounds}).
-
-## YOUR ROLE AND LIMITS
-- You CRITIQUE the research synthesis using structured dimensions.
-- You CANNOT dispatch workers, search papers, or run experiments.
-- You MUST be specific — never say "evidence insufficient" without specifying WHAT is missing.
-- You MUST distinguish:
-  - retrieved_evidence: claims backed by sources in the synthesis
-  - background_knowledge: general domain knowledge not from retrieved sources
-  - assumptions: reasonable but unverified inferences
-  - unsupported_claims: claims with no backing
-
-## Artifacts to Review
-${artifactSection}
-${previousSection}
-${issueLedgerSection}
-
-${roundInstructions}
-
-${passRubricSection}
-
-## Review Dimensions
-Score each dimension 1-5 with justification:
-${dimensionList}
-
-## Anti-Pattern Checklist
-Flag any detected anti-patterns:
-${antiPatternChecklist}
-
-## Output Format
-Respond with valid JSON:
-{
-  "reviewerRole": "${role}",
-  "round": ${round},
-  "dimensions": [
-    {
-      "dimension": "problem_definition",
-      "score": 4,
-      "justification": "Clear problem statement with well-defined scope...",
-      "suggestedImprovement": "Could strengthen by..."
-    }
-  ],
-  "overallScore": 3.5,
-  "verdict": "pass|revise|experimental_pivot|reject",
-  "criticalBlockers": [
-    {
-      "issue": "Specific description of the blocking issue",
-      "severity": "critical",
-      "whyItMatters": "Why this blocks scientific validity",
-      "evidenceForIssue": "What in the synthesis shows this problem",
-      "repairAction": "Concrete action to fix this",
-      "passCondition": "What would make this blocker pass"
-    }
-  ],
-  "majorIssues": [...],
-  "minorSuggestions": ["Suggestion 1", "Suggestion 2"],
-  "repairPaths": [
-    {
-      "blockerId": "b1",
-      "action": "Concrete repair action",
-      "estimatedEffort": "low|medium|high",
-      "prerequisite": "optional dependency"
-    }
-  ],
-  "passConditions": ["Condition 1 that would make this pass", "Condition 2"],
-  "trackedIssues": [
-    {
-      "issueId": "ISS-001",
-      "status": "open|partially_resolved|resolved|deferred|blocked",
-      "note": "Assessment of this issue in the current round"
-    }
-  ],
-  "antiPatternFlags": [
-    {
-      "pattern": "citation_hallucination",
-      "location": "Claim c3",
-      "description": "Cites Smith et al. 2023 but no such source in evidence cards",
-      "severity": "critical",
-      "suggestedFix": "Remove claim or find actual source"
-    }
-  ]
-}
-
-## CRITICAL RULES
-1. Every blocker MUST have a repair action and pass condition
-2. Never reject vaguely — always specify what is wrong and how to fix it
-3. "experimental_pivot" means: literature gaps are real but a pilot experiment can test the core hypothesis
-4. Distinguish retrieved evidence from assumptions in your justifications
-5. ${round >= maxRounds ? "You MUST choose pass/experimental_pivot/reject. 'revise' is NOT allowed." : "Be thorough but constructive."}
-6. Do NOT verdict "pass" unless the Pass Rubric is fully satisfied
-7. Update tracked issue statuses accurately — do not mark as resolved unless genuinely fixed`;
-}
-
 // -------------------------------------------------------------------
 // Execute scientific review
 // -------------------------------------------------------------------
@@ -729,80 +494,28 @@ async function runSingleReviewer(
   issueLedger: ReviewIssue[],
   abortSignal?: AbortSignal,
 ): Promise<ScientificReviewPacket> {
-  const { model } = getModelForRole(role, session.config);
-  const budgetCheck = checkBudget(role, session.budget, session.config.budget);
-
-  if (!budgetCheck.allowed) {
-    return createFallbackPacket(role, round);
-  }
-
-  // Create review node
   const reviewNode = await store.createNode(session.id, {
     nodeType: "scientific_review",
     label: `${role === "reviewer_a" ? "Reviewer A" : "Reviewer B"}: Scientific Review Round ${round}`,
     assignedRole: role,
-    input: { round, maxRounds, previousRounds: previousPackets.length, openIssues: issueLedger.filter(i => i.status === "open").length },
+    input: {
+      round,
+      maxRounds,
+      previousRounds: previousPackets.length,
+      openIssues: issueLedger.filter(i => i.status === "open").length,
+      claimMapArtifactIds: claimMapArtifacts.map(a => a.id),
+      synthesisArtifactIds: synthesisArtifacts.map(a => a.id),
+      previousReviewPackets: previousPackets,
+      issueLedger,
+    },
     phase: "reviewer_deliberation",
   });
 
-  await store.updateNode(reviewNode.id, {
-    status: "running",
-    startedAt: new Date().toISOString(),
-  });
-
   try {
-    const prompt = buildScientificReviewPrompt(
-      role, claimMapArtifacts, synthesisArtifacts, round, maxRounds,
-      previousPackets.length > 0 ? previousPackets : undefined,
-      issueLedger.length > 0 ? issueLedger : undefined,
-    );
-
-    const result = await generateText({
-      model,
-      system: `You are a scientific reviewer performing a structured dimension-based audit. Respond ONLY with valid JSON matching the ScientificReviewPacket schema.`,
-      messages: [{ role: "user", content: prompt }],
-      abortSignal,
-    });
-
-    const tokens = result.usage?.totalTokens ?? 0;
-    const budget = trackUsage(session.budget, role, reviewNode.id, tokens);
-    await store.updateSession(session.id, { budget });
-
-    // Parse the packet
-    const packet = parseScientificReviewPacket(result.text, role, round);
-
-    // Mark node completed
-    await store.updateNode(reviewNode.id, {
-      status: "completed",
-      output: packet as unknown as Record<string, unknown>,
-      completedAt: new Date().toISOString(),
-    });
-
-    // Save artifact
-    const provenance: ArtifactProvenance = {
-      sourceNodeId: reviewNode.id,
-      sourceArtifactIds: [...claimMapArtifacts, ...synthesisArtifacts].map(a => a.id),
-      model: role,
-      generatedAt: new Date().toISOString(),
-    };
-
-    await store.createArtifact(
-      session.id,
-      reviewNode.id,
-      "scientific_review_packet",
-      `Scientific Review: ${role} Round ${round} (verdict: ${packet.verdict}, score: ${packet.overallScore.toFixed(1)})`,
-      packet as unknown as Record<string, unknown>,
-      provenance,
-    );
-
-    return packet;
+    const nodeCtx = await buildNodeContext(session.id);
+    const result = await executeNode(reviewNode, nodeCtx, abortSignal);
+    return result.output as unknown as ScientificReviewPacket;
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Review failed";
-    await store.updateNode(reviewNode.id, {
-      status: "failed",
-      error: message,
-      completedAt: new Date().toISOString(),
-    });
     return createFallbackPacket(role, round);
   }
 }
@@ -1054,116 +767,6 @@ function buildEmptyAggregates(): Record<ReviewDimension, { avgScore: number; tre
   return result;
 }
 
-// -------------------------------------------------------------------
-// Parsing
-// -------------------------------------------------------------------
-
-function parseScientificReviewPacket(
-  text: string,
-  role: "reviewer_a" | "reviewer_b",
-  round: number,
-): ScientificReviewPacket {
-  const parsed = extractJsonFromText(text);
-
-  if (!parsed) {
-    return createFallbackPacket(role, round);
-  }
-
-  // Validate and normalize dimensions
-  const dimensions: DimensionScore[] = [];
-  if (Array.isArray(parsed.dimensions)) {
-    for (const d of parsed.dimensions) {
-      if (d && typeof d === "object" && d.dimension && typeof d.score === "number") {
-        dimensions.push({
-          dimension: d.dimension as ReviewDimension,
-          score: Math.max(1, Math.min(5, Math.round(d.score))),
-          justification: d.justification ?? "",
-          suggestedImprovement: d.suggestedImprovement,
-        });
-      }
-    }
-  }
-
-  // Ensure all dimensions are present
-  for (const dim of ALL_DIMENSIONS) {
-    if (!dimensions.find(d => d.dimension === dim)) {
-      dimensions.push({
-        dimension: dim,
-        score: 3,
-        justification: "Not explicitly evaluated",
-      });
-    }
-  }
-
-  const overallScore = typeof parsed.overallScore === "number"
-    ? parsed.overallScore
-    : dimensions.reduce((s, d) => s + d.score, 0) / dimensions.length;
-
-  const verdict = validateVerdict(parsed.verdict as string);
-
-  // Parse anti-pattern flags
-  const antiPatternFlags: AntiPatternFlag[] = [];
-  if (Array.isArray(parsed.antiPatternFlags)) {
-    for (const f of parsed.antiPatternFlags) {
-      if (f && typeof f === "object" && f.pattern) {
-        antiPatternFlags.push({
-          pattern: f.pattern as AntiPatternType,
-          location: String(f.location ?? ""),
-          description: String(f.description ?? ""),
-          severity: (f.severity as "critical" | "major" | "minor") ?? "minor",
-          suggestedFix: String(f.suggestedFix ?? f.suggested_fix ?? ""),
-        });
-      }
-    }
-  }
-
-  return {
-    reviewerRole: role,
-    round,
-    dimensions,
-    overallScore,
-    verdict,
-    criticalBlockers: parseBlockers(parsed.criticalBlockers, "critical"),
-    majorIssues: parseBlockers(parsed.majorIssues, "major"),
-    minorSuggestions: Array.isArray(parsed.minorSuggestions) ? parsed.minorSuggestions.filter((s: unknown) => typeof s === "string") : [],
-    repairPaths: parseRepairPaths(parsed.repairPaths),
-    passConditions: Array.isArray(parsed.passConditions) ? parsed.passConditions.filter((s: unknown) => typeof s === "string") : [],
-    antiPatternFlags,
-  };
-}
-
-function parseBlockers(raw: unknown, defaultSeverity: "critical" | "major"): ScientificBlocker[] {
-  if (!Array.isArray(raw)) return [];
-  return raw
-    .filter((b: unknown) => b && typeof b === "object" && (b as Record<string, unknown>).issue)
-    .map((b: Record<string, unknown>) => ({
-      issue: String(b.issue ?? ""),
-      severity: (b.severity as "critical" | "major" | "minor") ?? defaultSeverity,
-      whyItMatters: String(b.whyItMatters ?? b.why_it_matters ?? ""),
-      evidenceForIssue: String(b.evidenceForIssue ?? b.evidence_for_issue ?? ""),
-      repairAction: String(b.repairAction ?? b.repair_action ?? ""),
-      passCondition: String(b.passCondition ?? b.pass_condition ?? ""),
-    }));
-}
-
-function parseRepairPaths(raw: unknown): RepairPath[] {
-  if (!Array.isArray(raw)) return [];
-  return raw
-    .filter((r: unknown) => r && typeof r === "object")
-    .map((r: Record<string, unknown>) => ({
-      blockerId: String(r.blockerId ?? r.blocker_id ?? ""),
-      action: String(r.action ?? ""),
-      estimatedEffort: (r.estimatedEffort ?? r.estimated_effort ?? "medium") as "low" | "medium" | "high",
-      prerequisite: r.prerequisite ? String(r.prerequisite) : undefined,
-    }));
-}
-
-function validateVerdict(raw: string | undefined): ScientificVerdict {
-  const valid: ScientificVerdict[] = ["pass", "revise", "experimental_pivot", "reject"];
-  if (raw && valid.includes(raw as ScientificVerdict)) return raw as ScientificVerdict;
-  return "revise";
-}
-
 function createFallbackPacket(role: "reviewer_a" | "reviewer_b", round: number): ScientificReviewPacket {
   return {
     reviewerRole: role,
@@ -1171,46 +774,17 @@ function createFallbackPacket(role: "reviewer_a" | "reviewer_b", round: number):
     dimensions: ALL_DIMENSIONS.map(dim => ({
       dimension: dim,
       score: 3,
-      justification: "Review could not be completed — using neutral default",
+      justification: "Review could not be completed - using neutral default",
     })),
     overallScore: 3.0,
     verdict: "revise",
     criticalBlockers: [],
     majorIssues: [],
-    minorSuggestions: ["Review generation failed — manual review recommended"],
+    minorSuggestions: ["Review generation failed - manual review recommended"],
     repairPaths: [],
     passConditions: ["Complete manual scientific review"],
     antiPatternFlags: [],
   };
-}
-
-function extractJsonFromText(text: string): Record<string, unknown> | null {
-  try {
-    const fenceMatch = text.match(/```(?:json)?\s*\n?([\s\S]*?)\n?```/);
-    if (fenceMatch) return JSON.parse(fenceMatch[1].trim());
-
-    const firstBrace = text.indexOf("{");
-    if (firstBrace >= 0) {
-      let depth = 0;
-      let inString = false;
-      let escape = false;
-      for (let i = firstBrace; i < text.length; i++) {
-        const ch = text[i];
-        if (escape) { escape = false; continue; }
-        if (ch === "\\") { escape = true; continue; }
-        if (ch === '"') { inString = !inString; continue; }
-        if (inString) continue;
-        if (ch === "{") depth++;
-        if (ch === "}") {
-          depth--;
-          if (depth === 0) return JSON.parse(text.slice(firstBrace, i + 1));
-        }
-      }
-    }
-    return JSON.parse(text.trim());
-  } catch {
-    return null;
-  }
 }
 
 // =============================================================

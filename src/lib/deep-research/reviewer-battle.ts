@@ -191,7 +191,7 @@ async function synthesizeBattle(
     return createFallbackBattleResult(packetArtifacts);
   }
 
-  const { model } = getModelForRole("main_brain", session.config);
+  const { model } = await getModelForRole("main_brain", session.config);
   const budgetCheck = checkBudget("main_brain", session.budget, session.config.budget);
 
   if (!budgetCheck.allowed) {

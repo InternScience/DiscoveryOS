@@ -44,6 +44,8 @@ interface PhaseProgressProps {
   onRunPhase?: (phase: Phase) => void;
   onSkipPhase?: (phase: Phase) => void;
   isRunning?: boolean;
+  /** The resolved model for this session (provider/modelId). */
+  resolvedModel?: { provider: string; modelId: string } | null;
 }
 
 export function PhaseProgress({
@@ -55,6 +57,7 @@ export function PhaseProgress({
   onRunPhase,
   onSkipPhase,
   isRunning,
+  resolvedModel,
 }: PhaseProgressProps) {
   const currentIndex = PHASE_ORDER.indexOf(currentPhase);
   const currentStage = PHASE_STAGE_NUMBER[currentPhase] ?? 0;
@@ -79,9 +82,14 @@ export function PhaseProgress({
         </div>
       )}
 
-      {/* Stage counter */}
-      <div className="text-[10px] text-muted-foreground">
-        Stage {currentStage}/11 — {PHASE_LABELS[currentPhase]}
+      {/* Stage counter + model */}
+      <div className="flex items-center justify-between text-[10px] text-muted-foreground">
+        <span>Stage {currentStage}/11 — {PHASE_LABELS[currentPhase]}</span>
+        {resolvedModel && (
+          <span className="text-[9px] font-mono bg-muted/50 px-1.5 py-0.5 rounded">
+            {resolvedModel.modelId}
+          </span>
+        )}
       </div>
 
       {/* Phase steps */}

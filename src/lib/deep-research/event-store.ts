@@ -15,6 +15,7 @@ import {
   createEmptyUsage,
   PHASE_STAGE_NUMBER,
 } from "./types";
+import { resolveCurrentModelInfo } from "./model-router";
 import type {
   DeepResearchSession,
   DeepResearchMessage,
@@ -159,9 +160,14 @@ export async function createSession(
 ): Promise<DeepResearchSession> {
   const id = nanoid();
   const now = new Date().toISOString();
+
+  // Resolve the current global model from settings and snapshot it
+  const resolvedModel = config?.resolvedModel ?? await resolveCurrentModelInfo();
+
   const fullConfig: DeepResearchConfig = {
     ...DEFAULT_CONFIG,
     ...config,
+    resolvedModel,
     budget: { ...DEFAULT_CONFIG.budget, ...config?.budget },
     literature: { ...DEFAULT_CONFIG.literature, ...config?.literature },
     execution: { ...DEFAULT_CONFIG.execution, ...config?.execution },
