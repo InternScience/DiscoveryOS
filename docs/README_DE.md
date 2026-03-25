@@ -47,9 +47,44 @@ Es richtet sich an Forschende, Entwickler, Labore und Self-Hoster, die mehr als 
 
 <!-- whats-new-start -->
 
+#### 2026-03-24
+- **Multimodaler LLM-Support**: Papierrecherche und Agenten-Workflows unterstuetzen jetzt Standard-LLMs und multimodale LLMs (mLLM), kontextbezogen auswaehlbar in den Einstellungen und der Modellauswahl.
+
+
+#### 2026-03-23
+- **GitHub-Faehigkeiten Import-Vorschau**: Neuer Vorschau-Workflow vor dem Import ermoeglicht das Durchsuchen, Pruefen und selektive Importieren von Faehigkeiten aus GitHub-Repositories
+
+
+
+<details>
+<summary>Aeltere Updates anzeigen</summary>
+
+#### 2026-03-22
+- **Obsidian-Notizexport**: Generieren Sie strukturierte, Obsidian-kompatible Notizen mit reichhaltigem YAML-Frontmatter, Abbildungen und Wikilinks direkt aus dem Paper-Studienpanel
+- **Modellauswahl pro Aufgabe**: Eine neue Modellauswahl-UI-Komponente erlaubt es Nutzern, das Standard-KI-Modell fuer einzelne Paper-Studienaufgaben (Zusammenfassung, Kritik, Notizen usw.) zu ueberschreiben
+- **Notiz-Diskussionsansicht**: Neue ganzseitige Diskussionsansicht fuer Paper-Notizen, die gebuendelte KI-gestuetzte Gespraeche rund um generierten Notizinhalt ermoeglichen
+
+
+
+
+#### 2026-03-21
+- **Entfernte HPC/SLURM-Ausfuehrung**: Tiefe Recherche-Sitzungen koennen jetzt ueber SSH auf entfernten Clustern ausgefuehrt werden, mit Unterstuetzung fuer rjob, rlaunch und SLURM sowie Datei-Staging und Job-Lifecycle-Verwaltung
+- **Kubernetes-Cluster-Konfigurationsoberflaeche**: Neues Einstellungspanel zur Laufzeitkonfiguration von K8s-Kontexten, PVC-Bindungen und Container-Images in Multi-Cluster-Umgebungen ohne Neustart
+- **Entfernte Profil-Bindung**: Tiefe Recherche-Sitzungen koennen an vorkonfigurierte SSH/Remote-Rechenprofile gebunden werden, was reproduzierbare verteilte Forschungs-Workflows ermoeglicht
+
+
+
+
+
+
 #### 2026-03-20
 - **Tiefenforschungsmodul**: Vollstaendige KI-gesteuerte wissenschaftliche Forschungs-Pipeline mit Mehrphasen-Orchestrierung, Gutachter-Diskussion, Ausfuehrungsplanung und Workflow-Grafik-Oberflaeche
 - **Ausfuehrungs-Pipeline**: Automatisiertes System zur Experimentausfuehrung mit Slurm-Job-Uebermittlung, Datensatzverwaltung, Vorverarbeitung und Unterstuetzung fuer entfernte Ausfuehrer
+
+
+
+
+
 
 
 #### 2026-03-19
@@ -59,9 +94,19 @@ Es richtet sich an Forschende, Entwickler, Labore und Self-Hoster, die mehr als 
 
 
 
+
+
+
+
+
 #### 2026-03-18
 - **Multimodale Bildanalyse fuer Papierauswertung**: PDF-Bilder werden jetzt waehrend Diskussions- und Forschungsideensitzungen visuell extrahiert und analysiert
 - **Claude Code Skills-Integration**: Importieren Sie Skills direkt aus lokalen Ordnern oder Claude Code-Projekten ueber einen neuen dedizierten Import-Workflow
+
+
+
+
+
 
 
 
@@ -74,10 +119,20 @@ Es richtet sich an Forschende, Entwickler, Labore und Self-Hoster, die mehr als 
 
 
 
+
+
+
+
+
 #### 2026-03-17
 - **Remote-Job-Profilverwaltung und SSH-Haertung**: sichere Erstellung, Bearbeitung und SSH-gehaertete Einreichung von Forschungsjobs auf Remote-Systemen
 - **Rich Markdown Rendering im Agent Panel**: Agent-Nachrichten rendern jetzt Tabellen, LaTeX-Mathematik und syntaxhervorgehobene Codebloecke
 - **API-Provider-Settings-UI**: API-Keys und Endpunkte fuer KI-Provider direkt auf der Settings-Seite konfigurieren
+
+
+
+
+
 
 
 
@@ -90,22 +145,12 @@ Es richtet sich an Forschende, Entwickler, Labore und Self-Hoster, die mehr als 
 
 
 
-#### 2026-03-16
-- **Robustheit fuer Paper-Diskussion und Ideation**: 2-2.5x hoeheres Token-Budget pro Rolle, automatische Wiederholung bei leeren oder zu kurzen Antworten und sichtbare Fehler in der UI
-- **Vollstaendiger Paper-Kontext**: Discussion- und Ideation-Agents erhalten bis zu 30k Zeichen des lokalen Volltexts statt nur des Abstracts
-- **Abstract-Extraktion korrigiert**: heuristische Regex-Extraktion und verbesserter KI-Prompt verhindern, dass Autorennamen als Abstract erkannt werden
-
-
-
-
-#### 2026-03-14
-- **Research Execution Engine**: neues KI-gesteuertes Forschungsorchestrierungssystem mit Remote-Profilen, Capability-Toggles, Laufhistorie und Agent-Tools
-- **Automatisch aktualisierter README-Bereich "What's New"**: GitHub-Actions-Workflow, der wichtige neue Features taeglich erkennt und in die README eintraegt
 
 
 
 
 
+</details>
 
 
 <!-- whats-new-end -->

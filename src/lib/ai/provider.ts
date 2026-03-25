@@ -133,11 +133,12 @@ function buildLanguageModel(provider: string, modelId: string): LanguageModel {
  */
 export async function getConfiguredModelWithProvider(): Promise<{
   providerId: string;
+  modelId: string;
   model: LanguageModel;
 }> {
   const { providerId: provider, modelId } = await getConfiguredModelSelection();
 
-  return { providerId: provider, model: buildLanguageModel(provider, modelId) };
+  return { providerId: provider, modelId, model: buildLanguageModel(provider, modelId) };
 }
 
 /**

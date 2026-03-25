@@ -1,4 +1,3 @@
-import type { ArticleSource } from "@/lib/article-search/types";
 import { validatePath } from "@/lib/files/filesystem";
 import { extractText, isSupportedFile, normalizeText } from "@/lib/files/text-extractor";
 import { resolvePaperPdfBuffer } from "@/lib/article-search/paper-content";
@@ -7,15 +6,10 @@ import {
   extractPdfPagesTextOnly,
   type PaperContentPart,
 } from "@/lib/files/pdf-image-extractor";
+import type { PaperArticleRef } from "./article-ref";
 
 // Re-export for convenience
 export type { PaperContentPart } from "@/lib/files/pdf-image-extractor";
-
-interface ArticleRef {
-  url: string;
-  source: ArticleSource;
-  pdfUrl?: string;
-}
 
 /**
  * Extract structured paper content (text + page images) from any source.
@@ -26,7 +20,7 @@ interface ArticleRef {
  * @param maxPages - maximum pages to process
  */
 export async function extractPaperContent(
-  article: ArticleRef,
+  article: PaperArticleRef,
   withImages: boolean = true,
   maxPages: number = 20,
 ): Promise<PaperContentPart[] | undefined> {
@@ -62,7 +56,7 @@ export async function extractPaperContent(
  * Kept for callers that don't need images.
  */
 export async function extractPaperFullText(
-  article: ArticleRef,
+  article: PaperArticleRef,
   maxChars: number = 30_000,
 ): Promise<string | undefined> {
   const parts = await extractPaperContent(article, false, 30);
