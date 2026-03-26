@@ -57,6 +57,7 @@ type ProviderOption = {
   name: string;
   models: ModelOption[];
 };
+type AgentModelOptionsKey = readonly ["agent-model-options", ...ProviderId[]];
 
 function normalizeModelKey(modelId: string): string {
   return modelId.replace(/[^a-zA-Z0-9]/g, "").toLowerCase();
@@ -295,13 +296,19 @@ export function AgentPanel({
     return configured.filter((id): id is ProviderId => Boolean(PROVIDERS[id as ProviderId]));
   }, [settings?.configuredProviders]);
 
+  const modelOptionsKey = useMemo<AgentModelOptionsKey | null>(() => {
+    if (configuredProviderIds.length === 0) {
+      return null;
+    }
+    return ["agent-model-options", ...configuredProviderIds];
+  }, [configuredProviderIds]);
+
   const { data: discoveredModelsByProvider, mutate: refreshDiscoveredModels } = useSWR<
     Record<string, ModelOption[]>
   >(
-    configuredProviderIds.length > 0
-      ? (["agent-model-options", ...configuredProviderIds] as const)
-      : null,
-    async ([, ...providerIds]) => {
+    modelOptionsKey,
+    async (key: AgentModelOptionsKey) => {
+      const [, ...providerIds] = key;
       const entries = await Promise.all(
         providerIds.map(async (providerId) => {
           try {
@@ -318,23 +325,23 @@ export function AgentPanel({
   );
 
   const availableProviders = useMemo<ProviderOption[]>(() => {
-    return configuredProviderIds
-      .map((id) => {
-        const provider = PROVIDERS[id];
-        if (!provider) return null;
+    const providers: ProviderOption[] = [];
+    for (const id of configuredProviderIds) {
+      const provider = PROVIDERS[id];
+      if (!provider) continue;
 
-        const knownIds = new Set(provider.models.map((model) => model.id));
-        const extraModels = (discoveredModelsByProvider?.[id] ?? []).filter(
-          (model) => !knownIds.has(model.id),
-        );
+      const knownIds = new Set(provider.models.map((model) => model.id));
+      const extraModels = (discoveredModelsByProvider?.[id] ?? []).filter(
+        (model) => !knownIds.has(model.id),
+      );
 
-        return {
-          id: provider.id,
-          name: provider.name,
-          models: [...provider.models, ...extraModels],
-        };
-      })
-      .filter((provider): provider is ProviderOption => provider !== null);
+      providers.push({
+        id: provider.id,
+        name: provider.name,
+        models: [...provider.models, ...extraModels],
+      });
+    }
+    return providers;
   }, [configuredProviderIds, discoveredModelsByProvider]);
 
   const settingsFallback = useMemo<ModelSelection | null>(() => {
