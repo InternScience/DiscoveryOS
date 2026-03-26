@@ -45,6 +45,7 @@ export default async function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
         style={{ fontFamily: "var(--font-override, var(--font-geist-sans, sans-serif))" }}
+        suppressHydrationWarning
       >
         <Script id="style-theme-init" strategy="beforeInteractive">{`try{var s=localStorage.getItem('style-theme');if(s&&s!=='default')document.documentElement.dataset.style=s}catch(e){}`}</Script>
         <ThemeProvider

@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useEffect, memo } from "react";
 import {
   ReactFlow,
   Background,
@@ -269,14 +269,18 @@ function layoutGraph(
   return { flowNodes, flowEdges };
 }
 
-export function WorkflowGraph({ nodes: researchNodes, onNodeSelect }: WorkflowGraphProps) {
+export const WorkflowGraph = memo(function WorkflowGraph({ nodes: researchNodes, onNodeSelect }: WorkflowGraphProps) {
   const { flowNodes: initialNodes, flowEdges: initialEdges } = useMemo(
     () => layoutGraph(researchNodes, onNodeSelect),
     [researchNodes, onNodeSelect]
   );
 
-  const [flowNodes] = useNodesState(initialNodes);
-  const [flowEdges] = useEdgesState(initialEdges);
+  const [flowNodes, setFlowNodes] = useNodesState(initialNodes);
+  const [flowEdges, setFlowEdges] = useEdgesState(initialEdges);
+
+  // Sync when layout recomputes (useNodesState only uses initialNodes on first render)
+  useEffect(() => { setFlowNodes(initialNodes); }, [initialNodes, setFlowNodes]);
+  useEffect(() => { setFlowEdges(initialEdges); }, [initialEdges, setFlowEdges]);
 
   if (researchNodes.length === 0) {
     return (
@@ -302,4 +306,4 @@ export function WorkflowGraph({ nodes: researchNodes, onNodeSelect }: WorkflowGr
       </ReactFlow>
     </div>
   );
-}
+});

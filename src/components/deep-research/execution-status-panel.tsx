@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, memo } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -56,7 +56,7 @@ function rjobSummary(jsonStr: string | null | undefined): string | null {
   }
 }
 
-export function ExecutionStatusPanel({
+export const ExecutionStatusPanel = memo(function ExecutionStatusPanel({
   executions,
   workspaceId,
   sessionId: _sessionId,
@@ -336,4 +336,4 @@ export function ExecutionStatusPanel({
       </div>
     </ScrollArea>
   );
-}
+});

@@ -291,15 +291,21 @@ export default function WorkspacePage({
                       onArticleSelect={(a) => { if (a) openArticleTab(a); }}
                     />
                   </div>
-                  <div className={middlePanel === "cluster" ? "flex-1 min-h-0" : "hidden"}>
-                    <ClusterPanel workspaceId={workspaceId} />
-                  </div>
-                  <div className={middlePanel === "research" ? "flex-1 min-h-0" : "hidden"}>
-                    <ResearchExecPanel workspaceId={workspaceId} />
-                  </div>
-                  <div className={middlePanel === "deepResearch" ? "flex-1 min-h-0" : "hidden"}>
-                    <DeepResearchPanel workspaceId={workspaceId} />
-                  </div>
+                  {middlePanel === "cluster" && (
+                    <div className="flex-1 min-h-0">
+                      <ClusterPanel workspaceId={workspaceId} />
+                    </div>
+                  )}
+                  {middlePanel === "research" && (
+                    <div className="flex-1 min-h-0">
+                      <ResearchExecPanel workspaceId={workspaceId} />
+                    </div>
+                  )}
+                  {middlePanel === "deepResearch" && (
+                    <div className="flex-1 min-h-0">
+                      <DeepResearchPanel workspaceId={workspaceId} />
+                    </div>
+                  )}
                 </div>
               </ResizablePanel>
 

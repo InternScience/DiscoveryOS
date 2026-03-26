@@ -18,12 +18,7 @@ import { Play, Trash2, RotateCcw } from "lucide-react";
 import { toast } from "sonner";
 import {
   useDeepResearchSessions,
-  useDeepResearchSession,
-  useDeepResearchMessages,
-  useDeepResearchNodes,
-  useDeepResearchArtifacts,
-  useDeepResearchEvents,
-  useDeepResearchExecutions,
+  useDeepResearchSessionFull,
 } from "@/lib/hooks/use-deep-research";
 import { SessionList } from "./session-list";
 import { IntakeScreen } from "./intake-screen";
@@ -54,12 +49,19 @@ export function DeepResearchPanel({ workspaceId }: DeepResearchPanelProps) {
   const [activeTab, setActiveTab] = useState<TabView>("chat");
 
   const { sessions, mutate: mutateSessions } = useDeepResearchSessions(workspaceId);
-  const { session, mutate: mutateSession } = useDeepResearchSession(activeSessionId ?? undefined);
-  const { messages, mutate: mutateMessages } = useDeepResearchMessages(activeSessionId ?? undefined);
-  const { nodes } = useDeepResearchNodes(activeSessionId ?? undefined);
-  const { artifacts } = useDeepResearchArtifacts(activeSessionId ?? undefined);
-  const { events } = useDeepResearchEvents(activeSessionId ?? undefined);
-  const { executions } = useDeepResearchExecutions(activeSessionId ?? undefined);
+  const {
+    session,
+    messages,
+    nodes,
+    artifacts,
+    events,
+    executions,
+    mutate: mutateSessionFull,
+  } = useDeepResearchSessionFull(activeSessionId ?? undefined);
+
+  // Alias for convenience — mutateSessionFull refreshes everything
+  const mutateSession = mutateSessionFull;
+  const mutateMessages = mutateSessionFull;
 
   const selectedNode = nodes.find((n) => n.id === selectedNodeId) ?? null;
 

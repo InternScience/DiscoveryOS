@@ -1,5 +1,6 @@
 "use client";
 
+import { memo } from "react";
 import { PHASE_ORDER, PHASE_STAGE_NUMBER, type Phase, type BudgetUsage, type BudgetLimits, type SessionStatus } from "@/lib/deep-research/types";
 import { cn } from "@/lib/utils";
 import { CheckCircle2, Circle, Loader2, PauseCircle, AlertTriangle, StopCircle, BookX, SkipForward } from "lucide-react";
@@ -46,7 +47,7 @@ interface PhaseProgressProps {
   isRunning?: boolean;
 }
 
-export function PhaseProgress({
+export const PhaseProgress = memo(function PhaseProgress({
   currentPhase,
   sessionStatus,
   budget,
@@ -168,4 +169,4 @@ export function PhaseProgress({
       </div>
     </div>
   );
-}
+});
