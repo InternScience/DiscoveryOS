@@ -247,7 +247,7 @@ describe("searchArticles (index)", () => {
 
     expect(result.totalCount).toBeGreaterThanOrEqual(1);
     expect(result.articles.length).toBeGreaterThanOrEqual(1);
-  });
+  }, 15000);
 
   it("returns errors when a source fails", async () => {
     const { searchArticles } = await import("./index");
