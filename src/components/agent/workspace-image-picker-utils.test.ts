@@ -61,6 +61,7 @@ describe("workspace image picker utils", () => {
   it("prevents dialog focus restoration and returns focus to the agent input", () => {
     let prevented = false;
     let focused = false;
+    let scheduled: (() => void) | null = null;
 
     focusAgentInputAfterDialogClose(
       {
@@ -72,10 +73,21 @@ describe("workspace image picker utils", () => {
         focus() {
           focused = true;
         },
+      },
+      (callback) => {
+        scheduled = callback;
       }
     );
 
     expect(prevented).toBe(true);
+    expect(focused).toBe(false);
+
+    const runScheduled = scheduled as (() => void) | null;
+    expect(runScheduled).not.toBeNull();
+    if (runScheduled) {
+      runScheduled();
+    }
+
     expect(focused).toBe(true);
   });
 });

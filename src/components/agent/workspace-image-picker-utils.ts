@@ -67,8 +67,23 @@ export function focusAgentInputAfterDialogClose(
         focus: () => void;
       }
     | null
-    | undefined
+    | undefined,
+  scheduleFocus?: (callback: () => void) => void
 ): void {
   event.preventDefault?.();
-  input?.focus();
+  if (!input) {
+    return;
+  }
+
+  const scheduler =
+    scheduleFocus ??
+    ((callback: () => void) => {
+      if (typeof window !== "undefined" && typeof window.requestAnimationFrame === "function") {
+        window.requestAnimationFrame(() => callback());
+        return;
+      }
+      setTimeout(callback, 0);
+    });
+
+  scheduler(() => input.focus());
 }
