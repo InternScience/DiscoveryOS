@@ -1014,10 +1014,12 @@ export function AgentPanel({
     agentBody.llmModel = selectedModel;
 
     try {
-      await sendMessage({
-        text: `/${skill.slug}${Object.keys(paramValues).length > 0 ? " " + Object.entries(paramValues).map(([k, v]) => `${k}="${v}"`).join(" ") : ""}`,
-        ...(files.length > 0 ? { files } : {}),
-      });
+      const skillText = `/${skill.slug}${Object.keys(paramValues).length > 0 ? " " + Object.entries(paramValues).map(([k, v]) => `${k}="${v}"`).join(" ") : ""}`;
+      if (files.length > 0) {
+        await sendMessage({ text: skillText, files });
+      } else {
+        await sendMessage({ text: skillText });
+      }
     } catch {
       setPendingImages(files);
     } finally {
@@ -1064,10 +1066,13 @@ export function AgentPanel({
     agentBody.llmProvider = selectedProvider;
     agentBody.llmModel = selectedModel;
     try {
-      await sendMessage({
-        ...(text ? { text } : {}),
-        ...(files.length > 0 ? { files } : {}),
-      });
+      if (text && files.length > 0) {
+        await sendMessage({ text, files });
+      } else if (text) {
+        await sendMessage({ text });
+      } else {
+        await sendMessage({ files });
+      }
     } catch {
       setInput(text);
       setPendingImages(files);

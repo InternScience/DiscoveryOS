@@ -554,10 +554,13 @@ export function ChatPanel({ workspaceId, workspaceName }: ChatPanelProps) {
     setPendingImages([]);
 
     try {
-      await sendMessage({
-        ...(text ? { text } : {}),
-        ...(files.length > 0 ? { files } : {}),
-      });
+      if (text && files.length > 0) {
+        await sendMessage({ text, files });
+      } else if (text) {
+        await sendMessage({ text });
+      } else {
+        await sendMessage({ files });
+      }
     } catch {
       setInput(text);
       setPendingImages(files);
