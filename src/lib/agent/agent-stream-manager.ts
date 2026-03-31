@@ -11,6 +11,7 @@
 import { readUIMessageStream, uiMessageChunkSchema } from "ai";
 import type { UIMessage } from "ai";
 import { parseJsonEventStream } from "@ai-sdk/provider-utils";
+import { stripFilePartsForStorage } from "@/lib/ai/message-attachments";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -239,7 +240,10 @@ class AgentStreamManager {
         }
       }
 
-      localStorage.setItem(entry.storageKey, JSON.stringify(existingMessages));
+      localStorage.setItem(
+        entry.storageKey,
+        JSON.stringify(stripFilePartsForStorage(existingMessages)),
+      );
     } catch {
       // localStorage might be full – silently ignore
     }
