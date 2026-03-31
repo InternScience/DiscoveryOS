@@ -57,6 +57,7 @@ import { toast } from "sonner";
 import {
   createImageFileParts,
   extractImageFilesFromClipboard,
+  stripFilePartsForStorage,
 } from "@/lib/ai/message-attachments";
 import { ImageAttachmentGrid } from "@/components/ui/image-attachment-grid";
 
@@ -591,7 +592,10 @@ export function AgentPanel({
       if (messages.length === 0) {
         localStorage.removeItem(storageKey);
       } else {
-        localStorage.setItem(storageKey, JSON.stringify(messages));
+        localStorage.setItem(
+          storageKey,
+          JSON.stringify(stripFilePartsForStorage(messages)),
+        );
       }
       // Notify same-tab listeners (StorageEvent only fires cross-tab)
       window.dispatchEvent(new CustomEvent("agent-messages-updated", { detail: { key: storageKey } }));
@@ -614,7 +618,10 @@ export function AgentPanel({
         try {
           const bgActive = agentStreamManager.isActive(streamKeyRef.current);
           const toSave = bgActive ? msgs : scrubStuckToolParts(msgs);
-          localStorage.setItem(storageKey, JSON.stringify(toSave));
+          localStorage.setItem(
+            storageKey,
+            JSON.stringify(stripFilePartsForStorage(toSave)),
+          );
         } catch { /* ignore */ }
       }
     };
@@ -1002,6 +1009,7 @@ export function AgentPanel({
     }
 
     const files = pendingImages;
+    const skillText = `/${skill.slug}${Object.keys(paramValues).length > 0 ? " " + Object.entries(paramValues).map(([k, v]) => `${k}="${v}"`).join(" ") : ""}`;
     setInput("");
     setPendingImages([]);
     setActiveSkill(null);
@@ -1014,13 +1022,13 @@ export function AgentPanel({
     agentBody.llmModel = selectedModel;
 
     try {
-      const skillText = `/${skill.slug}${Object.keys(paramValues).length > 0 ? " " + Object.entries(paramValues).map(([k, v]) => `${k}="${v}"`).join(" ") : ""}`;
       if (files.length > 0) {
         await sendMessage({ text: skillText, files });
       } else {
         await sendMessage({ text: skillText });
       }
     } catch {
+      setInput(skillText);
       setPendingImages(files);
     } finally {
       // Clear skill context after sending, even if sendMessage throws

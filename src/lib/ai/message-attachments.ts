@@ -1,5 +1,7 @@
 import type { FileUIPart, UIMessage } from "ai";
 
+const STORAGE_ATTACHMENT_PLACEHOLDER = "Attachment omitted from saved session";
+
 function readFileAsDataUrl(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -61,4 +63,34 @@ export async function createImageFileParts(
 
 export function getImageFileParts(message: UIMessage): FileUIPart[] {
   return message.parts?.filter(isImageFilePart) ?? [];
+}
+
+export function stripFilePartsForStorage(messages: UIMessage[]): UIMessage[] {
+  return messages.flatMap((message) => {
+    const fileParts = message.parts?.filter(
+      (part): part is FileUIPart => part.type === "file",
+    ) ?? [];
+
+    if (fileParts.length === 0) {
+      return [message];
+    }
+
+    const preservedParts = message.parts?.filter((part) => part.type !== "file") ?? [];
+    if (preservedParts.length > 0) {
+      return [{ ...message, parts: preservedParts }];
+    }
+
+    return [{
+      ...message,
+      parts: [
+        {
+          type: "text",
+          text:
+            fileParts.length === 1
+              ? STORAGE_ATTACHMENT_PLACEHOLDER
+              : `${fileParts.length} attachments omitted from saved session`,
+        },
+      ],
+    }];
+  });
 }

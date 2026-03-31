@@ -3,6 +3,7 @@ import type { UIMessage } from "ai";
 import {
   getImageFileParts,
   isImageFilePart,
+  stripFilePartsForStorage,
 } from "./message-attachments";
 
 describe("message attachments", () => {
@@ -51,6 +52,48 @@ describe("message attachments", () => {
         mediaType: "image/jpeg",
         url: "data:image/jpeg;base64,abc",
         filename: "one.jpg",
+      },
+    ]);
+  });
+
+  it("strips file parts before persistence but keeps text content", () => {
+    const persisted = stripFilePartsForStorage([
+      {
+        id: "msg-1",
+        role: "user",
+        parts: [
+          { type: "file", mediaType: "image/png", url: "data:image/png;base64,abc" },
+          { type: "text", text: "describe this" },
+        ],
+      } as UIMessage,
+    ]);
+
+    expect(persisted).toEqual([
+      {
+        id: "msg-1",
+        role: "user",
+        parts: [{ type: "text", text: "describe this" }],
+      },
+    ]);
+  });
+
+  it("replaces attachment-only messages with a lightweight placeholder", () => {
+    const persisted = stripFilePartsForStorage([
+      {
+        id: "msg-2",
+        role: "user",
+        parts: [
+          { type: "file", mediaType: "image/png", url: "data:image/png;base64,abc", filename: "one.png" },
+          { type: "file", mediaType: "image/jpeg", url: "data:image/jpeg;base64,def", filename: "two.jpg" },
+        ],
+      } as UIMessage,
+    ]);
+
+    expect(persisted).toEqual([
+      {
+        id: "msg-2",
+        role: "user",
+        parts: [{ type: "text", text: "2 attachments omitted from saved session" }],
       },
     ]);
   });
