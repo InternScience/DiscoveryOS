@@ -36,6 +36,7 @@ export function useCostTracking({
       }
     } catch {
       costTrackerRef.current = new CostTracker();
+      setCostSnapshot(null);
     }
   }, [storageKey]);
 
