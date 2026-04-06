@@ -12,16 +12,18 @@ interface BuddyAvatarProps {
 }
 
 export function BuddyAvatar({ workspaceId, lastAssistantMessage, onHatchRequest }: BuddyAvatarProps) {
-  const [companion, setCompanion] = useState<Companion | null>(null);
+  const [companion, setCompanion] = useState<Companion | null>(() => getCompanion());
   const [reaction, setReaction] = useState<string | null>(null);
   const [expanded, setExpanded] = useState(false);
   const reactionTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastReactedMsgRef = useRef<string | null>(null);
+  const [prevWorkspaceId, setPrevWorkspaceId] = useState(workspaceId);
 
-  // Load companion on mount
-  useEffect(() => {
+  // Reload companion when workspaceId changes (React-recommended derived state pattern)
+  if (prevWorkspaceId !== workspaceId) {
+    setPrevWorkspaceId(workspaceId);
     setCompanion(getCompanion());
-  }, [workspaceId]);
+  }
 
   // Fire reaction when a new assistant message arrives
   useEffect(() => {

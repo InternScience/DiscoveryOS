@@ -70,7 +70,6 @@ import { ImageAttachmentGrid } from "@/components/ui/image-attachment-grid";
 import {
   getMatchingSkillsForSlashQuery,
   shouldAutocompleteCaptureEnter,
-  BUILTIN_COMMANDS,
   type BuiltinCommand,
 } from "./slash-command";
 import { extractMemoryTags } from "@/lib/agent/kairos-memory";

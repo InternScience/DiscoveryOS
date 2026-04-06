@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef, useMemo } from "react";
 import { useTranslations } from "next-intl";
 import { Zap, Terminal } from "lucide-react";
 import type { Skill } from "@/types";
@@ -37,10 +37,10 @@ export function SkillAutocomplete({
   const filteredSkills = getMatchingSkillsForSlashQuery(skills, query);
   const filteredBuiltins = getMatchingBuiltinCommands(query);
 
-  const items: AutocompleteItem[] = [
+  const items: AutocompleteItem[] = useMemo(() => [
     ...filteredBuiltins.map((command) => ({ kind: "builtin" as const, command })),
     ...filteredSkills.map((skill) => ({ kind: "skill" as const, skill })),
-  ];
+  ], [filteredSkills, filteredBuiltins]);
 
   if (trackedQuery !== query) {
     setTrackedQuery(query);

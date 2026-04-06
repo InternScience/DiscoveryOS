@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   Dialog,
   DialogContent,
@@ -33,13 +33,7 @@ export function MemoryPanel({ open, onOpenChange, workspaceId }: MemoryPanelProp
   const [dreaming, setDreaming] = useState(false);
   const [rememberText, setRememberText] = useState("");
 
-  useEffect(() => {
-    if (open && workspaceId) {
-      loadMemories();
-    }
-  }, [open, workspaceId]);
-
-  const loadMemories = async () => {
+  const loadMemories = useCallback(async () => {
     setLoading(true);
     try {
       const res = await fetch(`/api/agent/memory?workspaceId=${encodeURIComponent(workspaceId)}`);
@@ -52,7 +46,13 @@ export function MemoryPanel({ open, onOpenChange, workspaceId }: MemoryPanelProp
     } finally {
       setLoading(false);
     }
-  };
+  }, [workspaceId]);
+
+  useEffect(() => {
+    if (open && workspaceId) {
+      loadMemories();
+    }
+  }, [open, workspaceId, loadMemories]);
 
   const handleRemember = async () => {
     if (!rememberText.trim()) return;
