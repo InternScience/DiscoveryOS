@@ -62,6 +62,8 @@ npm run dev                          # open http://localhost:3000
 
 After the UI opens: **Settings** → configure a model provider → open a workspace → click **Sync** → start chatting.
 
+> **Security**: InnoClaw includes shell execution and remote job submission capabilities. See [SECURITY.md](SECURITY.md) for deployment hardening and trust boundary documentation.
+
 <details>
 <summary>Environment variables, upgrade flow, and advanced setup</summary>
 
@@ -88,9 +90,19 @@ npm run build
 
 Check `CHANGELOG.md` before every upgrade. Compare `.env.local` against `.env.example` for new variables.
 
-For OS-specific prerequisites, production deployment, and Docker: see [Installation](docs/getting-started/installation.md) and [Deployment](docs/getting-started/deployment.md).
+For OS-specific prerequisites and production deployment: see [Installation](docs/getting-started/installation.md) and [Deployment](docs/getting-started/deployment.md).
 
 </details>
+
+### Docker Deployment
+
+```bash
+git clone https://github.com/SpectrAI-Initiative/InnoClaw.git && cd InnoClaw
+cp .env.production.example .env.production.local   # edit: set API key + WORKSPACE_ROOTS
+docker compose up -d                                # open http://localhost:3000
+```
+
+See the full [Docker Deployment Guide](docs/docker.md) for volumes, reverse proxy, backups, and upgrades.
 
 ---
 
@@ -122,10 +134,27 @@ Go from code inspection to job submission and result analysis. Review repositori
 
 <!-- whats-new-start -->
 
+#### 2026-04-02
+- **Docker Deployment Support**: Added Dockerfile, docker-compose.yml, and full Docker deployment guide for self-hosted production setups
+- **200+ New Built-in Skills**: Expanded skill library with bioinformatics, cheminformatics, genomics, physics, and drug discovery pipelines
+- **Skill Creator Framework**: New meta-skill with evaluation, benchmarking, and validation tooling for building and testing custom skills
+
+
+#### 2026-04-01
+- **Text-to-CAD Skill**: New agent skill that converts natural language descriptions into 3D CAD models (STL/STEP) using CadQuery, with automatic environment setup
+- **Workspace Image Picker**: New dialog UI in the agent panel for browsing and selecting images from the workspace to attach to conversations
+
+
+
+<details>
+<summary>Show earlier updates</summary>
+
 #### 2026-03-31
 - **Pasted Image Support**: Users can now paste images directly into the chat input for multimodal AI conversations
 - **Deep Research Role Studio**: New Role Studio panel lets users configure and manage custom researcher roles in the deep research workflow
 - **Expanded Paper Search Sources**: Added BioRxiv, PubMed, and PubChem as searchable paper sources in Paper Study
+
+
 
 
 #### 2026-03-26
@@ -135,17 +164,20 @@ Go from code inspection to job submission and result analysis. Review repositori
 
 
 
+
+
 #### 2026-03-26
 - **Node.js Runtime Update**: InnoClaw now targets Node.js 24+ and is verified against both Node.js 24 LTS and the latest Node.js 25 current release. CI and local version hints have been updated accordingly.
 
 
 
 
-<details>
-<summary>Show earlier updates</summary>
+
 
 #### 2026-03-24
 - **Multimodal LLM Support**: Paper Study and agent workflows now support both standard LLMs and multimodal LLMs (mLLM), selectable per-context in settings and the model selector
+
+
 
 
 
@@ -157,10 +189,14 @@ Go from code inspection to job submission and result analysis. Review repositori
 
 
 
+
+
 #### 2026-03-22
 - **Obsidian Note Export**: Generate structured, Obsidian-compatible paper notes with rich YAML frontmatter, figures, and wikilinks directly from the paper study panel
 - **Per-Task Model Selector**: New model selector UI component lets users override the default AI model for individual paper study tasks (summary, roast, notes, etc.)
 - **Note Discussion View**: New full-page discussion view for paper notes, enabling threaded AI-assisted conversations around generated note content
+
+
 
 
 
@@ -178,26 +214,13 @@ Go from code inspection to job submission and result analysis. Review repositori
 
 
 
+
+
 #### 2026-03-20
 - **Deep Research Module**: Full AI-driven scientific research pipeline with multi-phase orchestration, reviewer deliberation, execution planning, and workflow graph UI
 - **Execution Pipeline**: Automated experiment execution system with Slurm job submission, dataset management, preprocessing, and remote executor support
 
 
-
-
-
-#### 2026-03-19
-- **ClawHub Skill Import**: New integration to import skills directly from ClawHub via a dedicated API endpoint and import dialog
-- **Code Preview Panel**: New in-editor code preview component supporting syntax highlighting and save-status tracking
-- **Paper Study Cache**: Persistent caching layer for paper study sessions, improving reload performance and state continuity
-
-
-
-
-
-#### 2026-03-18
-- **Multimodal Vision for Paper Analysis**: PDF images are now extracted and analyzed visually during paper discussion and research ideation sessions
-- **Claude Code Skills Integration**: Import skills directly from local folders or Claude Code projects via a new dedicated import workflow
 
 
 

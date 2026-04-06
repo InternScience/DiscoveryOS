@@ -47,10 +47,27 @@ Il s'adresse aux chercheurs, developpeurs, laboratoires et adeptes du self-hosti
 
 <!-- whats-new-start -->
 
+#### 2026-04-02
+- **Support du deploiement Docker**: Ajout d'un Dockerfile, docker-compose.yml et d'un guide complet de deploiement Docker pour les configurations de production auto-hebergees
+- **200+ nouveaux skills integres**: Bibliotheque de skills enrichie avec des pipelines en bioinformatique, chemoinformatique, genomique, physique et decouverte de medicaments
+- **Framework de creation de skills**: Nouveau meta-skill avec outils d'evaluation, de benchmarking et de validation pour construire et tester des skills personnalises
+
+
+#### 2026-04-01
+- **Competence Text-to-CAD**: Nouvelle competence d'agent qui convertit des descriptions en langage naturel en modeles CAD 3D (STL/STEP) via CadQuery, avec configuration automatique de l'environnement
+- **Selecteur d'images de l'espace de travail**: Nouvelle interface de dialogue dans le panneau agent pour parcourir et selectionner des images de l'espace de travail a joindre aux conversations
+
+
+
+<details>
+<summary>Afficher les mises a jour precedentes</summary>
+
 #### 2026-03-31
 - **Support du collage d'images**: Les utilisateurs peuvent maintenant coller des images directement dans la saisie du chat pour des conversations IA multimodales
 - **Role Studio pour la recherche approfondie**: Le nouveau panneau Role Studio permet de configurer et gerer des roles de chercheur personnalises dans le flux de recherche approfondie
 - **Sources de recherche d'articles elargies**: BioRxiv, PubMed et PubChem ont ete ajoutes comme sources interrogeables dans Paper Study
+
+
 
 
 #### 2026-03-26
@@ -60,8 +77,7 @@ Il s'adresse aux chercheurs, developpeurs, laboratoires et adeptes du self-hosti
 
 
 
-<details>
-<summary>Afficher les mises a jour precedentes</summary>
+
 
 #### 2026-03-24
 - **Support LLM multimodal**: Les flux de recherche de documents et d'agents prennent desormais en charge les LLM standard et multimodaux (mLLM), selectionnables par contexte dans les parametres et le selecteur de modele.
@@ -69,8 +85,12 @@ Il s'adresse aux chercheurs, developpeurs, laboratoires et adeptes du self-hosti
 
 
 
+
+
 #### 2026-03-23
 - **Apercu d'importation de competences GitHub**: Nouveau flux de previsualisation avant importation permettant de parcourir, examiner et importer selectivement des competences depuis des depots GitHub
+
+
 
 
 
@@ -86,10 +106,14 @@ Il s'adresse aux chercheurs, developpeurs, laboratoires et adeptes du self-hosti
 
 
 
+
+
 #### 2026-03-21
 - **Execution HPC/SLURM distante**: Les sessions de recherche approfondie peuvent desormais s'executer sur des clusters distants via SSH, avec prise en charge de rjob, rlaunch et SLURM, ainsi que la gestion du cycle de vie des taches
 - **Interface de configuration Kubernetes**: Nouveau panneau de parametres pour configurer a chaud les contextes K8s, les liaisons PVC et les images de conteneurs sur des deployments multi-clusters sans redemarrage
 - **Liaison de profil distant**: Les sessions de recherche approfondie peuvent etre liees a des profils SSH/calcul distant preconfigures, permettant des workflows de recherche distribues et reproductibles
+
+
 
 
 
@@ -110,38 +134,13 @@ Il s'adresse aux chercheurs, developpeurs, laboratoires et adeptes du self-hosti
 
 
 
+
+
 #### 2026-03-19
 - **Importation de competences ClawHub**: Nouvelle integration pour importer des competences directement depuis ClawHub via un point d'API dedie et une boite de dialogue d'importation
 - **Panneau de previsualisation du code**: Nouveau composant de previsualisation de code integre a l'editeur, avec coloration syntaxique et suivi de l'etat de sauvegarde
 - **Cache de session d'etude**: Couche de mise en cache persistante pour les sessions d'etude de documents, ameliorant les performances de rechargement et la continuite d'etat
 
-
-
-
-
-
-
-
-
-
-#### 2026-03-18
-- **Vision Multimodale pour l'Analyse d'Articles**: Les images PDF sont desormais extraites et analysees visuellement lors des sessions de discussion et d'ideation de recherche
-- **Integration des Competences Claude Code**: Importez des competences directement depuis des dossiers locaux ou des projets Claude Code via un nouveau flux d'importation dedie
-
-
-
-
-
-
-
-
-
-
-
-#### 2026-03-18
-- **Vision multimodale pour discussion et ideation d'articles** : les fournisseurs compatibles vision recoivent maintenant les images de pages PDF extraites en plus du texte afin d'analyser figures, tableaux et schemas.
-- **UI de galerie des pages d'article** : les panneaux Discussion et Ideation affichent maintenant une galerie repliable de miniatures de pages avec apercu en grand format.
-- **Detection de la capacite vision des fournisseurs** : la configuration des fournisseurs expose maintenant la prise en charge vision pour basculer automatiquement entre contexte multimodal et texte seul.
 
 
 
