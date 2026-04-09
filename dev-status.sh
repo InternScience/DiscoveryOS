@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# InnoClaw Dev Status Script
+# DiscoveryOS Dev Status Script
 cd "$(dirname "$0")"
 
 if [ -f .dev.pid ]; then

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# InnoClaw Dev Stop Script
+# DiscoveryOS Dev Stop Script
 cd "$(dirname "$0")"
 
 PORT=3000

@@ -43,7 +43,7 @@ Use one of the following:
 
 ## Deployment Hardening
 
-InnoClaw is designed for **trusted, self-hosted environments**. It does not include built-in user authentication. Follow these guidelines before exposing any instance beyond `localhost`.
+DiscoveryOS is designed for **trusted, self-hosted environments**. It does not include built-in user authentication. Follow these guidelines before exposing any instance beyond `localhost`.
 
 ### Network
 
@@ -55,7 +55,7 @@ InnoClaw is designed for **trusted, self-hosted environments**. It does not incl
 
 - Never commit `.env.local` or API keys to version control. Use `.env.example` as a reference.
 - Rotate API keys regularly; grant only the scopes each provider requires.
-- Set restrictive file permissions on the SQLite database (`chmod 600 data/innoclaw.db`).
+- Set restrictive file permissions on the SQLite database (`chmod 600 data/discoveryos.db`).
 
 ### Workspace Roots
 
@@ -71,7 +71,7 @@ InnoClaw is designed for **trusted, self-hosted environments**. It does not incl
 
 ## Trust Boundaries & Execution Capabilities
 
-InnoClaw exposes several execution-heavy APIs. Understand these surfaces before deploying.
+DiscoveryOS exposes several execution-heavy APIs. Understand these surfaces before deploying.
 
 ### Terminal API — `/api/terminal/exec`
 
@@ -101,11 +101,11 @@ InnoClaw exposes several execution-heavy APIs. Understand these surfaces before 
 
 ## Summary Recommendation
 
-For any deployment accessible beyond `localhost`, **add an authentication layer** before the InnoClaw server. Options include:
+For any deployment accessible beyond `localhost`, **add an authentication layer** before the DiscoveryOS server. Options include:
 
 - Reverse proxy basic auth or mutual TLS
 - OAuth2 Proxy / Authelia / Authentik
 - Tailscale / WireGuard VPN
 - Cloud IAP (GCP Identity-Aware Proxy, AWS ALB auth, Cloudflare Access)
 
-InnoClaw assumes the network perimeter provides authentication. All API endpoints, including the terminal and agent APIs, are accessible to anyone who can reach the server.
+DiscoveryOS assumes the network perimeter provides authentication. All API endpoints, including the terminal and agent APIs, are accessible to anyone who can reach the server.

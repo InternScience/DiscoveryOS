@@ -1,6 +1,6 @@
 # Core Features
 
-InnoClaw provides a rich set of features for AI-powered research and file management.
+DiscoveryOS provides a rich set of features for AI-powered research and file management.
 
 ## Workspace Management
 

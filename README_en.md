@@ -1,8 +1,4 @@
-# InnoClaw
-
-<p align="center">
-  <img src="site/logos/20260316-112548.png" alt="InnoClaw Logo" width="160" />
-</p>
+# DiscoveryOS
 
 <p align="center">
   <b>This file is kept for backward compatibility.</b>
@@ -16,7 +12,7 @@
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-Apache%202.0-blue.svg" alt="Apache 2.0 License"></a>
   <a href="README.md"><img src="https://img.shields.io/badge/English-Homepage-111827" alt="English Homepage"></a>
   <a href="docs/README_CN.md"><img src="https://img.shields.io/badge/简体中文-README-2563eb" alt="Chinese README"></a>
-  <a href="https://SpectrAI-Initiative.github.io/InnoClaw/"><img src="https://img.shields.io/badge/Docs-Online-blue?logo=gitbook&logoColor=white" alt="Online Docs"></a>
+  <a href="https://InternScience.github.io/DiscoveryOS/"><img src="https://img.shields.io/badge/Docs-Online-blue?logo=gitbook&logoColor=white" alt="Online Docs"></a>
 </p>
 
 ## ↪️ Redirect

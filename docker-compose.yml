@@ -1,5 +1,5 @@
 services:
-  innoclaw:
+  discoveryos:
     build: .
     ports:
       - "3000:3000"
@@ -7,7 +7,7 @@ services:
       - .env.production.local
     volumes:
       # Persistent data: SQLite DB, HF datasets, embeddings
-      - innoclaw-data:/app/data
+      - discoveryos-data:/app/data
       # Mount your research directories here.
       # Must match the paths listed in WORKSPACE_ROOTS.
       # Example: expose ~/research as /research inside the container,
@@ -16,4 +16,4 @@ services:
     restart: unless-stopped
 
 volumes:
-  innoclaw-data:
+  discoveryos-data:

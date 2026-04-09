@@ -1,10 +1,10 @@
 # Testing
 
-This guide covers how to write and run tests for InnoClaw.
+This guide covers how to write and run tests for DiscoveryOS.
 
 ## Test Framework
 
-InnoClaw uses [Vitest](https://vitest.dev/) (v4+) as its test framework, configured in `vitest.config.ts`.
+DiscoveryOS uses [Vitest](https://vitest.dev/) (v4+) as its test framework, configured in `vitest.config.ts`.
 
 ### Configuration
 

@@ -1,6 +1,6 @@
 # API Reference
 
-InnoClaw provides a set of REST API endpoints served by Next.js API routes. All endpoints are under the `/api/` path.
+DiscoveryOS provides a set of REST API endpoints served by Next.js API routes. All endpoints are under the `/api/` path.
 
 ## Workspaces
 

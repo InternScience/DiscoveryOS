@@ -1,6 +1,6 @@
 # Configuration
 
-This page describes how to customize InnoClaw's behavior through configuration options.
+This page describes how to customize DiscoveryOS's behavior through configuration options.
 
 ## Environment-Based Configuration
 
@@ -10,7 +10,7 @@ All configuration is done through environment variables in your `.env.local` fil
 
 ### Selecting a Provider
 
-InnoClaw supports multiple AI providers. Configure your preferred provider by setting the appropriate API key:
+DiscoveryOS supports multiple AI providers. Configure your preferred provider by setting the appropriate API key:
 
 ```ini
 # Use OpenAI
@@ -105,22 +105,22 @@ WORKSPACE_ROOTS=/data/research,/data/projects,/home/user/documents
 
 ## Database Configuration
 
-InnoClaw uses SQLite with the database stored at `./data/innoclaw.db` by default. You can override this path via the `DATABASE_URL` environment variable:
+DiscoveryOS uses SQLite with the database stored at `./data/discoveryos.db` by default. You can override this path via the `DATABASE_URL` environment variable:
 
 ```ini
 # Plain filesystem path (no SQLite URI scheme)
-DATABASE_URL=/tmp/innoclaw/innoclaw.db
+DATABASE_URL=/tmp/discoveryos/discoveryos.db
 ```
 
 :::{note}
-Only plain filesystem paths are accepted (e.g. `/data/innoclaw.db`). SQLite connection strings like `file:./data/innoclaw.db?mode=rwc` are **not** supported — the `file:` prefix will be stripped automatically.
+Only plain filesystem paths are accepted (e.g. `/data/discoveryos.db`). SQLite connection strings like `file:./data/discoveryos.db?mode=rwc` are **not** supported — the `file:` prefix will be stripped automatically.
 :::
 
 To use a fresh database:
 
 ```bash
 # Remove existing database
-rm ./data/innoclaw.db
+rm ./data/discoveryos.db
 
 # Re-run migrations
 npx drizzle-kit migrate
@@ -131,7 +131,7 @@ npx drizzle-kit migrate
 If the project resides on a network filesystem (NFS, CIFS, etc.), the Next.js build cache may fail. Set a local build directory:
 
 ```ini
-NEXT_BUILD_DIR=/tmp/innoclaw-next
+NEXT_BUILD_DIR=/tmp/discoveryos-next
 ```
 
 ## Proxy Configuration

@@ -1,13 +1,13 @@
-# InnoClaw 开源发布计划
+# DiscoveryOS 开源发布计划
 
 ## 项目概况
 
-- **名称**: InnoClaw
+- **名称**: DiscoveryOS
 - **定位**: 可自托管的 AI 研究助手，灵感来自 Google NotebookLM
 - **技术栈**: Next.js 16 + React 19 + TypeScript 5.9 + SQLite (Drizzle ORM) + Vitest
 - **许可证**: Apache 2.0
 - **当前版本**: 0.1.0
-- **新仓库地址**: https://github.com/SpectrAI-Initiative/InnoClaw
+- **新仓库地址**: https://github.com/InternScience/DiscoveryOS
 
 ---
 
@@ -36,10 +36,10 @@
 
 1. ~~**更新所有仓库 URL**~~ ✅ 已完成
 2. ~~**Git 历史清理**~~ ✅ 已验证无敏感信息
-3. ~~**创建新仓库**~~ ✅ https://github.com/SpectrAI-Initiative/InnoClaw
+3. ~~**创建新仓库**~~ ✅ https://github.com/InternScience/DiscoveryOS
 4. ~~**推送代码到新仓库**~~ ✅ 已推送 main 分支
 5. ~~**创建 git tag `v0.1.0`**~~ ✅ 已创建并推送
-6. ~~**创建 GitHub Release**~~ ✅ https://github.com/SpectrAI-Initiative/InnoClaw/releases/tag/v0.1.0
+6. ~~**创建 GitHub Release**~~ ✅ https://github.com/InternScience/DiscoveryOS/releases/tag/v0.1.0
 7. **配置 GitHub Pages 和 branch protection** — 需在仓库 Settings 中手动操作
 8. **旧仓库添加迁移说明**
 

@@ -1,6 +1,6 @@
-# Contributing to InnoClaw
+# Contributing to DiscoveryOS
 
-Thank you for your interest in contributing to InnoClaw!
+Thank you for your interest in contributing to DiscoveryOS!
 
 For detailed contribution guidelines, development setup, and coding conventions, please see:
 
@@ -14,5 +14,5 @@ For detailed contribution guidelines, development setup, and coding conventions,
 
 ## Reporting Issues
 
-- **Bugs & Features**: [GitHub Issues](https://github.com/SpectrAI-Initiative/InnoClaw/issues)
+- **Bugs & Features**: [GitHub Issues](https://github.com/InternScience/DiscoveryOS/issues)
 - **Security Vulnerabilities**: See [SECURITY.md](SECURITY.md) — do **not** use public issues for security reports.

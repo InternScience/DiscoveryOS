@@ -1,6 +1,6 @@
 # Notifications & Bot Integrations
 
-InnoClaw supports integration with messaging platforms through bot adapters. This allows users to interact with their workspaces directly from chat applications.
+DiscoveryOS supports integration with messaging platforms through bot adapters. This allows users to interact with their workspaces directly from chat applications.
 
 ## Supported Channels
 
@@ -15,7 +15,7 @@ InnoClaw supports integration with messaging platforms through bot adapters. Thi
 sequenceDiagram
     participant User
     participant Platform as Feishu / WeChat
-    participant Webhook as InnoClaw Webhook
+    participant Webhook as DiscoveryOS Webhook
     participant Processor as Bot Processor
     participant AI as AI Provider
 

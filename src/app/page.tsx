@@ -88,7 +88,7 @@ export default function HomePage() {
                 </span>{" "}
                 <span className="relative inline-block animate-slide-in-up [animation-delay:100ms]">
                   <span className="relative z-10 bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent">
-                    InnoClaw
+                    DiscoveryOS
                   </span>
                   {/* Glow behind text */}
                   <span className="absolute inset-0 -z-10 blur-2xl opacity-50 bg-gradient-to-r from-primary to-accent" />
@@ -204,7 +204,7 @@ export default function HomePage() {
                 </div>
                 <h3 className="mb-2 text-xl font-semibold">{t("noWorkspaces") || "No workspaces yet"}</h3>
                 <p className="mb-8 max-w-md text-muted-foreground">
-                  {t("noWorkspacesDesc") || "Create or open a workspace to get started with InnoClaw"}
+                  {t("noWorkspacesDesc") || "Create or open a workspace to get started with DiscoveryOS"}
                 </p>
                 <div className="flex gap-3">
                   <Button size="lg" className="gap-2 cyber-btn text-white" onClick={() => setOpenDialogOpen(true)}>

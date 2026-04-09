@@ -2,7 +2,7 @@
 
 ## Goal
 
-Turn the repository homepage into a concise English landing page that explains InnoClaw quickly, highlights its strongest workflows, and routes detailed setup and reference material into the existing documentation.
+Turn the repository homepage into a concise English landing page that explains DiscoveryOS quickly, highlights its strongest workflows, and routes detailed setup and reference material into the existing documentation.
 
 This redesign treats `README.md` as the canonical English homepage and moves translated README files into `docs/README_*.md`.
 
@@ -34,7 +34,7 @@ If a future translation is not ready yet, use a polished placeholder page with l
 
 ### 1. Hero
 
-Purpose: tell visitors what InnoClaw is in under 10 seconds.
+Purpose: tell visitors what DiscoveryOS is in under 10 seconds.
 
 Recommended contents:
 
@@ -57,7 +57,7 @@ Recommended badges:
 - GitHub stars or repo link
 - Optional: build status
 
-### 2. What Is InnoClaw?
+### 2. What Is DiscoveryOS?
 
 Purpose: give a compact product definition.
 
@@ -68,7 +68,7 @@ Keep this section to 2 or 3 short paragraphs covering:
 - Research-oriented workflows beyond generic chat
 - Self-hosted and multi-model friendly deployment
 
-### 3. Why InnoClaw
+### 3. Why DiscoveryOS
 
 Purpose: explain why this is not just another general AI chat UI.
 
@@ -90,8 +90,8 @@ Purpose: give the shortest working path.
 This should be much shorter than the current README install section. Keep it to:
 
 ```bash
-git clone https://github.com/SpectrAI-Initiative/InnoClaw.git
-cd InnoClaw
+git clone https://github.com/InternScience/DiscoveryOS.git
+cd DiscoveryOS
 npm install
 npm run dev
 ```
@@ -214,7 +214,7 @@ The following content is valuable, but better suited to docs pages or translated
 
 - Keep and rewrite the top-level description from `README_en.md`
 - Shorten `What's New` to the latest 2 or 3 items, or move it below the hero
-- Compress the long `Overview` list into `Why InnoClaw`
+- Compress the long `Overview` list into `Why DiscoveryOS`
 - Replace the current long `Quick Start` with a short path plus docs link
 - Move most of `Setup Advanced Features via Skills` into docs links
 - Compress `Features` into `Feature Snapshot`
@@ -232,8 +232,8 @@ The following content is valuable, but better suited to docs pages or translated
 Use one structure for all README translations:
 
 1. Hero
-2. What Is InnoClaw?
-3. Why InnoClaw
+2. What Is DiscoveryOS?
+3. Why DiscoveryOS
 4. Quick Start
 5. What You Can Do
 6. Core Workflows
@@ -259,7 +259,7 @@ Recommended note near the top of translated files:
 ## Suggested README Skeleton
 
 ```md
-# InnoClaw
+# DiscoveryOS
 
 <hero image>
 
@@ -269,15 +269,15 @@ One-line positioning statement.
 
 English | [Chinese](docs/README_CN.md) | [Japanese](docs/README_JA.md) | [French](docs/README_FR.md) | [German](docs/README_DE.md)
 
-[Documentation](https://SpectrAI-Initiative.github.io/InnoClaw/) | [Quick Start](#quick-start) | [Community](#community)
+[Documentation](https://InternScience.github.io/DiscoveryOS/) | [Quick Start](#quick-start) | [Community](#community)
 
 ---
 
-## What Is InnoClaw?
+## What Is DiscoveryOS?
 
 Short product description.
 
-## Why InnoClaw
+## Why DiscoveryOS
 
 - Key differentiator 1
 - Key differentiator 2
@@ -287,8 +287,8 @@ Short product description.
 ## Quick Start
 
 ```bash
-git clone https://github.com/SpectrAI-Initiative/InnoClaw.git
-cd InnoClaw
+git clone https://github.com/InternScience/DiscoveryOS.git
+cd DiscoveryOS
 npm install
 npm run dev
 ```

@@ -1,7 +1,7 @@
-# InnoClaw
+# DiscoveryOS
 
 <p align="center">
-  <img src="../site/logos/20260316-112548.png" alt="InnoClaw Logo" width="200" />
+  <img src="../site/logos/20260316-112548.png" alt="DiscoveryOS Logo" width="200" />
 </p>
 
 <p align="center">
@@ -15,10 +15,10 @@
 <p align="center">
   <a href="../LICENSE"><img src="https://img.shields.io/badge/License-Apache%202.0-blue.svg" alt="Apache 2.0 License"></a>
   <a href="../package.json"><img src="https://img.shields.io/badge/Node.js-24%2B%20(LTS)%20%7C%2025%20Current-339933?logo=node.js&logoColor=white" alt="Node.js 24+ LTS or 25 Current"></a>
-  <a href="https://github.com/SpectrAI-Initiative/InnoClaw/actions/workflows/ci.yml"><img src="https://github.com/SpectrAI-Initiative/InnoClaw/actions/workflows/ci.yml/badge.svg" alt="CI Status"></a>
-  <a href="https://SpectrAI-Initiative.github.io/InnoClaw/"><img src="https://img.shields.io/badge/Docs-Online-blue?logo=gitbook&logoColor=white" alt="Online Docs"></a>
-  <a href="https://github.com/SpectrAI-Initiative/InnoClaw/stargazers"><img src="https://img.shields.io/github/stars/SpectrAI-Initiative/InnoClaw?style=flat&logo=github" alt="GitHub Stars"></a>
-  <a href="https://github.com/SpectrAI-Initiative/InnoClaw/issues"><img src="https://img.shields.io/github/issues/SpectrAI-Initiative/InnoClaw" alt="GitHub Issues"></a>
+  <a href="https://github.com/InternScience/DiscoveryOS/actions/workflows/ci.yml"><img src="https://github.com/InternScience/DiscoveryOS/actions/workflows/ci.yml/badge.svg" alt="CI Status"></a>
+  <a href="https://InternScience.github.io/DiscoveryOS/"><img src="https://img.shields.io/badge/Docs-Online-blue?logo=gitbook&logoColor=white" alt="Online Docs"></a>
+  <a href="https://github.com/InternScience/DiscoveryOS/stargazers"><img src="https://img.shields.io/github/stars/InternScience/DiscoveryOS?style=flat&logo=github" alt="GitHub Stars"></a>
+  <a href="https://github.com/InternScience/DiscoveryOS/issues"><img src="https://img.shields.io/github/issues/InternScience/DiscoveryOS" alt="GitHub Issues"></a>
 </p>
 
 <p align="center">
@@ -26,12 +26,12 @@
 </p>
 
 <p align="center">
-  <a href="https://SpectrAI-Initiative.github.io/InnoClaw/">Dokumentation</a> · <a href="#de-quick-start">Schnellstart</a> · <a href="#de-community-support">Community</a>
+  <a href="https://InternScience.github.io/DiscoveryOS/">Dokumentation</a> · <a href="#de-quick-start">Schnellstart</a> · <a href="#de-community-support">Community</a>
 </p>
 
 > Diese Uebersetzung kann langsamer aktualisiert werden als die englische Startseite `../README.md`. Fuer die neuesten `What's New`-Eintraege sind die englische und chinesische Seite die verlaesslichsten Quellen.
 
-InnoClaw verwandelt serverseitige Ordner in KI-native Workspaces fuer dokumentenbasierten Chat, Paper-Studium, wissenschaftliche Workflows und Research Execution.
+DiscoveryOS verwandelt serverseitige Ordner in KI-native Workspaces fuer dokumentenbasierten Chat, Paper-Studium, wissenschaftliche Workflows und Research Execution.
 
 Es richtet sich an Forschende, Entwickler, Labore und Self-Hoster, die mehr als nur eine generische Chat-Oberflaeche wollen: zitierte Antworten auf echten Dateien, wiederverwendbare Skills und einen klaren Weg vom Lesen zur Ausfuehrung.
 
@@ -159,13 +159,13 @@ Es richtet sich an Forschende, Entwickler, Labore und Self-Hoster, die mehr als 
 
 ---
 
-## 🧭 Was ist InnoClaw?
+## 🧭 Was ist DiscoveryOS?
 
-InnoClaw ist eine selbst hostbare Web-App fuer forschungsorientierte Wissensarbeit. Sie kombiniert Workspace-Verwaltung, RAG-Chat, Paper-Suche und -Review, wiederverwendbare wissenschaftliche Skills und agentenbasierte Ausfuehrung an einem Ort.
+DiscoveryOS ist eine selbst hostbare Web-App fuer forschungsorientierte Wissensarbeit. Sie kombiniert Workspace-Verwaltung, RAG-Chat, Paper-Suche und -Review, wiederverwendbare wissenschaftliche Skills und agentenbasierte Ausfuehrung an einem Ort.
 
 Anstatt zwischen Dateibrowser, Notiztool, Paper-Reader und Automatisierungskonsole zu wechseln, behalten Sie den Ablauf in einem einzigen Workspace: Ordner oeffnen, Inhalte synchronisieren, fundierte Fragen stellen, Papers lesen und mehrstufige Forschungstasks ausfuehren.
 
-## ✨ Warum InnoClaw
+## ✨ Warum DiscoveryOS
 
 - **Workspace-first** - Serverordner als dauerhafte Forschungs-Workspaces mit Dateien, Notizen, Chatverlauf und Execution-Kontext nutzen
 - **Fundierte KI-Antworten** - RAG-gestuetzte Antworten mit Quellenangaben ueber eigene Dokumente und eigenen Code erhalten
@@ -179,8 +179,8 @@ Anstatt zwischen Dateibrowser, Notiztool, Paper-Reader und Automatisierungskonso
 ## 🚀 Schnellstart
 
 ```bash
-git clone https://github.com/SpectrAI-Initiative/InnoClaw.git
-cd InnoClaw
+git clone https://github.com/InternScience/DiscoveryOS.git
+cd DiscoveryOS
 npm install
 npm run dev
 ```
@@ -274,16 +274,16 @@ Von Code-Inspektion ueber Job-Einreichung bis zur Ergebnisanalyse in einem gefue
 
 ## 💬 Community und Support
 
-- **Hilfe bei Setup oder Nutzung noetig?** Starten Sie mit der Dokumentation: https://SpectrAI-Initiative.github.io/InnoClaw/
-- **Bug gefunden oder Feature-Wunsch?** Erstellen Sie ein Issue: https://github.com/SpectrAI-Initiative/InnoClaw/issues
+- **Hilfe bei Setup oder Nutzung noetig?** Starten Sie mit der Dokumentation: https://InternScience.github.io/DiscoveryOS/
+- **Bug gefunden oder Feature-Wunsch?** Erstellen Sie ein Issue: https://github.com/InternScience/DiscoveryOS/issues
 - **Direkten Austausch gesucht?** Die Feishu-Community finden Sie in `README_CN.md`
 
 ## ℹ️ Projektinfos
 
 - **Lizenz** - Apache-2.0, siehe `../LICENSE`
-- **Repository** - https://github.com/SpectrAI-Initiative/InnoClaw
-- **Dokumentation** - https://SpectrAI-Initiative.github.io/InnoClaw/
+- **Repository** - https://github.com/InternScience/DiscoveryOS
+- **Dokumentation** - https://InternScience.github.io/DiscoveryOS/
 
 ## ⭐ Star-Verlauf
 
-[![Star History Chart](https://api.star-history.com/svg?repos=SpectrAI-Initiative/InnoClaw&type=Date)](https://star-history.com/#SpectrAI-Initiative/InnoClaw&Date)
+[![Star History Chart](https://api.star-history.com/svg?repos=InternScience/DiscoveryOS&type=Date)](https://star-history.com/#InternScience/DiscoveryOS&Date)

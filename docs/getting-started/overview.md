@@ -1,8 +1,8 @@
 # Overview
 
-## What is InnoClaw?
+## What is DiscoveryOS?
 
-InnoClaw is an AI-powered research assistant web application similar to Google NotebookLM. It lets you open server-side folders as **workspaces**, browse and manage files, and chat with AI grounded in your workspace files via **RAG** (Retrieval-Augmented Generation).
+DiscoveryOS is an AI-powered research assistant web application similar to Google NotebookLM. It lets you open server-side folders as **workspaces**, browse and manage files, and chat with AI grounded in your workspace files via **RAG** (Retrieval-Augmented Generation).
 
 ## Key Features
 
@@ -24,7 +24,7 @@ InnoClaw is an AI-powered research assistant web application similar to Google N
 
 ## Architecture
 
-The following diagram shows the high-level architecture of InnoClaw:
+The following diagram shows the high-level architecture of DiscoveryOS:
 
 ```{mermaid}
 graph TB
@@ -94,7 +94,7 @@ graph TB
 
 ## RAG Pipeline
 
-The core feature of InnoClaw is RAG-based AI chat. The pipeline works in three stages:
+The core feature of DiscoveryOS is RAG-based AI chat. The pipeline works in three stages:
 
 ```{mermaid}
 flowchart LR

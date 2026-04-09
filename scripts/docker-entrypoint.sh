@@ -1,7 +1,7 @@
 #!/bin/sh
 set -e
 
-echo "==> InnoClaw startup checks"
+echo "==> DiscoveryOS startup checks"
 
 # ── 1. Writable data directory ───────────────────────────────────
 if [ ! -w "/app/data" ]; then
@@ -47,5 +47,5 @@ npx drizzle-kit migrate 2>&1 || {
 }
 
 # ── 5. Start the server ──────────────────────────────────────────
-echo "==> Starting InnoClaw on port ${PORT:-3000}"
+echo "==> Starting DiscoveryOS on port ${PORT:-3000}"
 exec node server.js

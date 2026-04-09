@@ -9,7 +9,7 @@ import { writeFileSync } from "fs";
 const sessionId = process.argv[2];
 const outputPath = process.argv[3] || `session-${sessionId}.md`;
 
-const db = new Database("data/innoclaw.db", { readonly: true });
+const db = new Database("data/discoveryos.db", { readonly: true });
 
 // --- Session ---
 const session = db.prepare(`

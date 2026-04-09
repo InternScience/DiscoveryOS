@@ -1,5 +1,5 @@
 {
-  "name": "innoclaw",
+  "name": "discoveryos",
   "version": "0.2.0",
   "private": true,
   "description": "Self-hostable AI research assistant inspired by Google NotebookLM",
@@ -12,15 +12,15 @@
     "nextjs",
     "self-hosted"
   ],
-  "author": "InnoClaw Contributors",
+  "author": "DiscoveryOS Contributors",
   "license": "Apache-2.0",
   "repository": {
     "type": "git",
-    "url": "https://github.com/SpectrAI-Initiative/InnoClaw.git"
+    "url": "https://github.com/InternScience/DiscoveryOS.git"
   },
-  "homepage": "https://SpectrAI-Initiative.github.io/InnoClaw/",
+  "homepage": "https://InternScience.github.io/DiscoveryOS/",
   "bugs": {
-    "url": "https://github.com/SpectrAI-Initiative/InnoClaw/issues"
+    "url": "https://github.com/InternScience/DiscoveryOS/issues"
   },
   "engines": {
     "node": ">=24.0.0"

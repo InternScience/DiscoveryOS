@@ -23,7 +23,7 @@ CONCURRENCY="${CONCURRENCY:-5}"
 POLL_INTERVAL=10            # seconds between status polls
 MAX_POLL_TIME=1800          # 30 min timeout per session
 WORKSPACE_NAME="batch-test-$(date +%Y%m%d-%H%M%S)"
-WORKSPACE_FOLDER="/tmp/innoclaw-batch-test/${WORKSPACE_NAME}"
+WORKSPACE_FOLDER="/tmp/discoveryos-batch-test/${WORKSPACE_NAME}"
 LOG_DIR="./batch-test-logs/${WORKSPACE_NAME}"
 
 # ── Parse CLI args ────────────────────────────────────────────────────────────

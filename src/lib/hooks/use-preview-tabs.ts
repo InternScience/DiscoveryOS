@@ -5,7 +5,7 @@ import type { PreviewTab } from "@/components/preview/preview-tabs";
 import type { Article } from "@/lib/article-search/types";
 import { getFileName } from "@/lib/utils";
 
-const STORAGE_KEY_PREFIX = "innoclaw-preview-tabs-";
+const STORAGE_KEY_PREFIX = "discoveryos-preview-tabs-";
 
 interface StoredState {
   tabs: PreviewTab[];

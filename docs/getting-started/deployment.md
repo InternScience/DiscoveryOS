@@ -1,6 +1,6 @@
 # Deployment
 
-This guide covers deploying InnoClaw in production environments.
+This guide covers deploying DiscoveryOS in production environments.
 
 ## Deployment Architecture
 
@@ -14,8 +14,8 @@ graph TB
 
     subgraph Host["Production Server"]
         Proxy["Reverse Proxy<br/>(Nginx / Caddy)"]
-        App["InnoClaw<br/>(Next.js)"]
-        SQLite["SQLite DB<br/>./data/innoclaw.db"]
+        App["DiscoveryOS<br/>(Next.js)"]
+        SQLite["SQLite DB<br/>./data/discoveryos.db"]
         Workspace["Workspace Files<br/>WORKSPACE_ROOTS"]
     end
 
@@ -73,13 +73,13 @@ npm install -g pm2
 
 # Build and start
 npm run build
-pm2 start npm --name "innoclaw" -- start
+pm2 start npm --name "discoveryos" -- start
 
 # Check status
 pm2 status
 
 # View logs
-pm2 logs innoclaw
+pm2 logs discoveryos
 
 # Enable auto-start on boot
 pm2 startup
@@ -121,7 +121,7 @@ Create a `docker-compose.yml`:
 ```yaml
 version: '3.8'
 services:
-  innoclaw:
+  discoveryos:
     build: .
     ports:
       - "3000:3000"
@@ -185,7 +185,7 @@ your-domain.com {
 
 | Data | Location | Description |
 |------|----------|-------------|
-| SQLite Database | `./data/innoclaw.db` | Workspaces, source index, chat history, notes, settings |
+| SQLite Database | `./data/discoveryos.db` | Workspaces, source index, chat history, notes, settings |
 | Workspace Files | `WORKSPACE_ROOTS` directories | User's actual files (outside the project directory) |
 | Configuration | `.env.local` | Environment variables and API keys |
 

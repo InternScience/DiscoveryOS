@@ -49,7 +49,7 @@ describe("ensureEnvLocal", () => {
     ensureEnvLocal();
 
     const content = fs.readFileSync(path.join(tmpDir, ".env.local"), "utf-8");
-    expect(content).toContain("# InnoClaw configuration");
+    expect(content).toContain("# DiscoveryOS configuration");
   });
 });
 

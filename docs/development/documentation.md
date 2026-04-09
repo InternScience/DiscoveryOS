@@ -87,7 +87,7 @@ make clean
 
 ## MyST Markdown Syntax
 
-InnoClaw docs use [MyST-Parser](https://myst-parser.readthedocs.io/) for Markdown support in Sphinx.
+DiscoveryOS docs use [MyST-Parser](https://myst-parser.readthedocs.io/) for Markdown support in Sphinx.
 
 ### Admonitions
 
@@ -134,7 +134,7 @@ See [Installation Guide](getting-started/installation.md) for details.
 
 ## Translation Workflow
 
-InnoClaw documentation uses Sphinx's built-in internationalization (i18n) with `sphinx-intl`.
+DiscoveryOS documentation uses Sphinx's built-in internationalization (i18n) with `sphinx-intl`.
 
 ### How It Works
 
@@ -164,8 +164,8 @@ Open the `.po` files in `docs/locales/zh/LC_MESSAGES/` with a text editor or a P
 
 ```po
 #: ../../getting-started/overview.md:3
-msgid "What is InnoClaw?"
-msgstr "什么是 InnoClaw？"
+msgid "What is DiscoveryOS?"
+msgstr "什么是 DiscoveryOS？"
 ```
 
 Each entry has:

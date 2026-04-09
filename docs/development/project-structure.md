@@ -1,6 +1,6 @@
 # Project Structure
 
-This page describes the directory layout and module organization of InnoClaw.
+This page describes the directory layout and module organization of DiscoveryOS.
 
 ## High-Level Structure
 
@@ -54,7 +54,7 @@ graph TB
 ## Directory Layout
 
 ```
-innoclaw/
+discoveryos/
 ├── src/
 │   ├── app/                          # Next.js App Router
 │   │   ├── page.tsx                  # Home page (workspace list)

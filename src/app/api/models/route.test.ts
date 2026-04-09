@@ -29,7 +29,7 @@ describe("/api/models", () => {
     // Reset env
     process.env = { ...originalEnv };
     fetchSpy.mockReset();
-    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "innoclaw-models-route-"));
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "discoveryos-models-route-"));
     vi.spyOn(process, "cwd").mockReturnValue(tmpDir);
 
     // Mock global fetch used inside the route handler

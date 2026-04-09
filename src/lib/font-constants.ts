@@ -1,5 +1,5 @@
-export const FONT_SIZE_KEY = "innoclaw-font-size";
-export const FONT_FAMILY_KEY = "innoclaw-font-family";
+export const FONT_SIZE_KEY = "discoveryos-font-size";
+export const FONT_FAMILY_KEY = "discoveryos-font-family";
 export const DEFAULT_FONT = "geist";
 export const MIN_FONT_SIZE = 12;
 export const MAX_FONT_SIZE = 24;

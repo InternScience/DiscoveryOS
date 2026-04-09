@@ -66,3 +66,7 @@ docs/locales/*/LC_MESSAGES/**/*.mo
 reference/
 batch-test-logs/
 .worktrees/
+
+# claude
+.claude/*
+CLAUDE.md

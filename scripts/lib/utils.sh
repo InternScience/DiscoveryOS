@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # ==============================================================================
-# Shared utilities for InnoClaw CLI scripts.
+# Shared utilities for DiscoveryOS CLI scripts.
 # Source this file: source "$(dirname "$0")/lib/utils.sh"
 # ==============================================================================
 

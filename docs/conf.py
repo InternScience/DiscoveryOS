@@ -4,9 +4,9 @@
 # https://www.sphinx-doc.org/en/master/usage/configuration.html
 
 # -- Project information -----------------------------------------------------
-project = "InnoClaw"
-copyright = "2025, InnoClaw Contributors"
-author = "InnoClaw Contributors"
+project = "DiscoveryOS"
+copyright = "2025, DiscoveryOS Contributors"
+author = "DiscoveryOS Contributors"
 
 # -- General configuration ---------------------------------------------------
 extensions = [
@@ -45,7 +45,7 @@ exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
 html_theme = "shibuya"
 
 html_theme_options = {
-    "github_url": "https://github.com/SpectrAI-Initiative/InnoClaw",
+    "github_url": "https://github.com/InternScience/DiscoveryOS",
     "nav_links": [
         {"title": "Getting Started", "url": "getting-started/overview"},
         {"title": "Usage", "url": "usage/features"},
@@ -53,22 +53,22 @@ html_theme_options = {
     ],
 }
 
-html_baseurl = "https://SpectrAI-Initiative.github.io/InnoClaw/"
+html_baseurl = "https://InternScience.github.io/DiscoveryOS/"
 
 html_context = {
     "languages": [
-        ("English", "/InnoClaw/en/"),
-        ("简体中文", "/InnoClaw/zh/"),
+        ("English", "/DiscoveryOS/en/"),
+        ("简体中文", "/DiscoveryOS/zh/"),
     ],
 }
 
 html_static_path = ["_static"]
 html_css_files = ["custom.css"]
-html_title = "InnoClaw Documentation"
+html_title = "DiscoveryOS Documentation"
 
 # -- Options for linkcheck ---------------------------------------------------
 linkcheck_ignore = [
-    r"https://github\.com/SpectrAI-Initiative/InnoClaw/(issues|pulls|actions)",
+    r"https://github\.com/InternScience/DiscoveryOS/(issues|pulls|actions)",
 ]
 
 # -- Options for sphinxcontrib-mermaid ---------------------------------------

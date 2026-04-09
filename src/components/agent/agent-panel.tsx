@@ -239,7 +239,7 @@ export function AgentPanel({
     handleModelChange,
     refreshDiscoveredModels,
   } = useModelSelection({
-    storageKey: "innoclaw-agent-model-selection",
+    storageKey: "discoveryos-agent-model-selection",
     configuredProviderIds,
     settingsFallback,
     fallbackDisplayName: t("modelLabel"),
@@ -1251,7 +1251,7 @@ export function AgentPanel({
                   {/* Glow orbs */}
                   <div className="absolute -left-4 -top-4 h-16 w-16 rounded-full bg-primary/20 blur-xl animate-pulse" />
                   <div className="absolute -right-4 -bottom-4 h-12 w-12 rounded-full bg-accent/20 blur-xl animate-pulse [animation-delay:0.5s]" />
-                  <ThinkingIndicator label="InnoClaw thinking" />
+                  <ThinkingIndicator label="DiscoveryOS thinking" />
                 </div>
               </div>
             )}

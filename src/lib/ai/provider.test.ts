@@ -40,7 +40,7 @@ describe("getPerModelProvider – base URL resolution", () => {
 
   beforeEach(() => {
     process.env = { ...originalEnv };
-    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "innoclaw-provider-test-"));
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "discoveryos-provider-test-"));
     vi.spyOn(process, "cwd").mockReturnValue(tmpDir);
     createOpenAISpy.mockClear();
   });

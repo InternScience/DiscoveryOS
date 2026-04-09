@@ -1,6 +1,6 @@
 # Local Development
 
-This guide covers running, debugging, and iterating on InnoClaw locally.
+This guide covers running, debugging, and iterating on DiscoveryOS locally.
 
 ## Starting the Development Server
 

@@ -1,6 +1,6 @@
-# InnoClaw Documentation
+# DiscoveryOS Documentation
 
-Welcome to the **InnoClaw** documentation — an AI-powered research assistant web application similar to Google NotebookLM.
+Welcome to the **DiscoveryOS** documentation — an AI-powered research assistant web application similar to Google NotebookLM.
 
 Users open server-side folders as workspaces, browse and manage files, and chat with AI grounded in workspace files via RAG (Retrieval-Augmented Generation).
 
