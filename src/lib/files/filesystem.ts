@@ -13,15 +13,33 @@ function isPathUnderRoot(resolved: string, root: string): boolean {
   return n === r || n.startsWith(r + "/");
 }
 
+/** Windows absolute path: starts with a drive letter, e.g. C:\ or D:/ */
+const WINDOWS_ABS_PATH_RE = /^[A-Za-z]:[/\\]/;
+
 /**
- * Parse workspace roots from environment variable
+ * Parse workspace roots from environment variable.
+ * Paths that are clearly wrong for the current OS (e.g. Windows drive-letter
+ * paths on Linux/macOS) are silently skipped with a one-time warning so a
+ * .env.local copied from another platform never causes crashes.
  */
 export function getWorkspaceRoots(): string[] {
   const roots = process.env.WORKSPACE_ROOTS || "";
+  const isWindows = process.platform === "win32";
+
   return roots
     .split(",")
     .map((r) => r.trim())
     .filter(Boolean)
+    .filter((r) => {
+      if (!isWindows && WINDOWS_ABS_PATH_RE.test(r)) {
+        console.warn(
+          `[DiscoveryOS] Skipping Windows-style workspace root "${r}" on ${process.platform}. ` +
+          `Update WORKSPACE_ROOTS in .env.local to use an absolute Linux/macOS path.`
+        );
+        return false;
+      }
+      return true;
+    })
     .map((r) => path.resolve(r));
 }
 

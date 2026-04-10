@@ -105,7 +105,7 @@ jobs:
           REPO_URL="https://github.com/${{ github.repository }}"
 
           PAYLOAD=$(jq -n \
-            --arg title "📋 InnoClaw 每日变更总结 - ${TODAY}" \
+            --arg title "📋 DiscoveryOS 每日变更总结 - ${TODAY}" \
             --arg commits "${COMMITS} 个 commit" \
             --arg summary "$SUMMARY" \
             --arg repo_url "$REPO_URL" \

@@ -28,7 +28,7 @@ function mulberry32(seed: number): () => number {
     a = (a + 0x6D2B79F5) & MASK;
     let t = ((a ^ (a >>> 15)) * (1 | a)) & MASK;
     t = (t + (((t ^ (t >>> 7)) * (61 | t)) & MASK)) & MASK;
-    return ((t ^ (t >>> 14)) & MASK) / 4294967296;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
   };
 }
 
