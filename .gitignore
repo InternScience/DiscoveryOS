@@ -70,3 +70,13 @@ batch-test-logs/
 # claude
 .claude/*
 CLAUDE.md
+
+## tauri
+tauri/dist/
+tauri/node_modules/
+tauri/target/
+tauri/src-tauri/target/
+tauri/src-tauri/node_modules/
+tauri/src-tauri/resources/
+# Node binary downloaded by build-desktop.sh — too large for git (>100 MB)
+tauri/src-tauri/binaries/

@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useMemo } from "react";
 import { useTranslations } from "next-intl";
-import { FolderOpen, FolderPlus, GitBranch, Sparkles, Cpu, Zap, Brain, Code2, GraduationCap, ChevronDown } from "lucide-react";
+import { FolderOpen, FolderPlus, GitBranch, Sparkles, Cpu, Zap, Brain, Code2, GraduationCap, ChevronDown, AlertTriangle, RefreshCw } from "lucide-react";
 import Link from "next/link";
 import { Header } from "@/components/layout/header";
 import { WorkspaceList } from "@/components/workspaces/workspace-list";
@@ -24,7 +24,7 @@ import { toast } from "sonner";
 
 export default function HomePage() {
   const t = useTranslations("home");
-  const { workspaces, isLoading, mutate } = useWorkspaces();
+  const { workspaces, isLoading, error, mutate } = useWorkspaces();
   const [workspaceRoots, setWorkspaceRoots] = useState<string[]>([]);
   const [defaultBrowsePath, setDefaultBrowsePath] = useState("");
   const [openDialogOpen, setOpenDialogOpen] = useState(false);
@@ -183,17 +183,50 @@ export default function HomePage() {
               </div>
             </div>
 
+            {/* Workspace list — four states: loading / error / empty / ready */}
             {isLoading ? (
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                {[...Array(4)].map((_, i) => (
-                  <div
-                    key={i}
-                    className="h-32 animate-shimmer rounded-xl border border-border/50"
-                    style={{ animationDelay: `${i * 100}ms` }}
-                  />
-                ))}
+              /* ── LOADING: shimmer skeleton grid ── */
+              <div className="space-y-3 animate-slide-in-up [animation-delay:700ms]">
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                  {[...Array(4)].map((_, i) => (
+                    <div
+                      key={i}
+                      className="flex flex-col gap-3 rounded-xl border border-border/50 bg-card/30 p-4 h-32 animate-shimmer"
+                      style={{ animationDelay: `${i * 80}ms` }}
+                    >
+                      <div className="h-4 w-2/3 rounded-md bg-muted/60" />
+                      <div className="h-3 w-1/2 rounded-md bg-muted/40" />
+                      <div className="mt-auto h-3 w-1/3 rounded-md bg-muted/30" />
+                    </div>
+                  ))}
+                </div>
+                <p className="text-center text-xs text-muted-foreground/50 pt-2">
+                  Loading workspaces…
+                </p>
+              </div>
+            ) : error ? (
+              /* ── ERROR: API / network failure ── */
+              <div className="relative flex flex-col items-center justify-center overflow-hidden rounded-2xl border border-destructive/30 bg-destructive/5 py-16 text-center backdrop-blur-sm animate-slide-in-up [animation-delay:700ms]">
+                <div className="absolute -left-10 -top-10 h-40 w-40 rounded-full bg-destructive/5 blur-3xl" />
+                <div className="relative mb-5 rounded-2xl bg-destructive/10 border border-destructive/20 p-5">
+                  <AlertTriangle className="h-10 w-10 text-destructive" />
+                </div>
+                <h3 className="mb-2 text-lg font-semibold text-destructive">Failed to load workspaces</h3>
+                <p className="mb-6 max-w-sm text-sm text-muted-foreground">
+                  {error?.message ?? "Could not reach the workspace API. The server may still be starting up."}
+                </p>
+                <Button
+                  size="default"
+                  variant="outline"
+                  className="gap-2 border-destructive/30 hover:border-destructive/60 hover:bg-destructive/5"
+                  onClick={() => mutate()}
+                >
+                  <RefreshCw className="h-4 w-4" />
+                  Retry
+                </Button>
               </div>
             ) : workspaces.length === 0 ? (
+              /* ── EMPTY: no workspaces yet ── */
               <div className="relative flex flex-col items-center justify-center overflow-hidden rounded-2xl border border-dashed border-border/50 bg-gradient-to-b from-muted/20 to-transparent py-20 text-center backdrop-blur-sm animate-slide-in-up [animation-delay:700ms]">
                 {/* Decorative elements */}
                 <div className="absolute -left-10 -top-10 h-40 w-40 rounded-full bg-primary/5 blur-3xl" />
@@ -218,6 +251,7 @@ export default function HomePage() {
                 </div>
               </div>
             ) : (
+              /* ── READY: workspace grid ── */
               <div className="animate-slide-in-up [animation-delay:700ms]">
                 <WorkspaceList workspaces={workspaces} onDelete={handleDelete} />
               </div>

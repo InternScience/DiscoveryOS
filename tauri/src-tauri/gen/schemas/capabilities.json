@@ -1,0 +1,1 @@
+{"default":{"identifier":"default","description":"Default capability set for DiscoveryOS desktop.","local":true,"windows":["main"],"permissions":["core:default",{"identifier":"shell:allow-spawn","allow":[{"args":true,"name":"node","sidecar":true}]},"shell:allow-kill"]}}

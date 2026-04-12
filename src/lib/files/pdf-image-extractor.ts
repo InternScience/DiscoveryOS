@@ -1,5 +1,8 @@
-import * as pdfjsLib from "pdfjs-dist/legacy/build/pdf.mjs";
 import type { TextItem } from "pdfjs-dist/types/src/display/api";
+// NOTE: pdfjs-dist is NOT imported at module level because it requires browser
+// globals (DOMMatrix, ImageData, Path2D) that are absent in Node.js without
+// @napi-rs/canvas.  All uses below go through getPdfjsLib() which loads it
+// lazily — only when a PDF actually needs to be processed.
 
 export interface PaperContentPart {
   type: "text" | "image";
@@ -19,6 +22,17 @@ interface ExtractOptions {
   imageScale?: number;
   /** JPEG quality 0-1 (default: 0.75) */
   imageQuality?: number;
+}
+
+/* ---------- lazy pdfjs import ---------- */
+
+let pdfjsLib: typeof import("pdfjs-dist/legacy/build/pdf.mjs") | null = null;
+
+async function getPdfjsLib() {
+  if (!pdfjsLib) {
+    pdfjsLib = await import("pdfjs-dist/legacy/build/pdf.mjs");
+  }
+  return pdfjsLib;
 }
 
 /* ---------- lazy canvas import ---------- */
@@ -113,18 +127,19 @@ export async function extractPdfPagesWithImages(
     return extractPdfPagesTextOnly(buffer, opts.maxPages);
   }
 
+  const pdfjs = await getPdfjsLib();
   const { createCanvas } = mod;
   type CanvasType = import("canvas").Canvas;
   const { maxPages = 20, imageScale = 1.5, imageQuality = 0.75 } = opts;
   const CanvasFactory = buildCanvasFactory(mod);
 
   const data = new Uint8Array(buffer);
-  const doc = await pdfjsLib.getDocument({
+  const doc = await pdfjs.getDocument({
     data,
     useSystemFonts: true,
     disableFontFace: true,
     CanvasFactory,
-  } as Parameters<typeof pdfjsLib.getDocument>[0]).promise;
+  } as Parameters<typeof pdfjs.getDocument>[0]).promise;
 
   const pageCount = Math.min(doc.numPages, maxPages);
   const parts: PaperContentPart[] = [];
@@ -187,8 +202,9 @@ export async function extractPdfPagesTextOnly(
   buffer: Buffer,
   maxPages: number = 30,
 ): Promise<PaperContentPart[]> {
+  const pdfjs = await getPdfjsLib();
   const data = new Uint8Array(buffer);
-  const doc = await pdfjsLib.getDocument({
+  const doc = await pdfjs.getDocument({
     data,
     useSystemFonts: true,
     disableFontFace: true,
