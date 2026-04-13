@@ -807,7 +807,9 @@ export default function SettingsPage() {
                 <div className="space-y-1.5">
                   {workspaceRoots.length > 0 ? workspaceRoots.map((root) => (
                     <div key={root} className="flex items-center gap-2 rounded bg-muted px-3 py-2">
-                      <span className="flex-1 font-mono text-sm truncate">{root}</span>
+                      <span className="flex-1 font-mono text-sm truncate" title={root}>
+                        {root.replace(/^\/home\/[^/]+/, "~")}
+                      </span>
                       <button
                         onClick={() => setWorkspaceRoots((prev) => prev.filter((r) => r !== root))}
                         className="text-muted-foreground hover:text-destructive transition-colors"

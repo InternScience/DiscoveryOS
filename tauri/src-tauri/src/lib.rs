@@ -63,7 +63,7 @@ fn default_workspace_roots(app: &AppHandle) -> tauri::Result<String> {
     }
     // Default to ~/DiscoveryOS — visible and easy to find in the home directory.
     let home = app.path().home_dir()?;
-    let dir = home.join("DiscoveryOS");
+    let dir = home.join("DiscoveryOS").join("workspace");
     fs::create_dir_all(&dir).map_err(|e| tauri::Error::Anyhow(e.into()))?;
     Ok(dir.to_string_lossy().into_owned())
 }
