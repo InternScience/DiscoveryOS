@@ -34,7 +34,7 @@ import { ScheduledTasksCard } from "@/components/scheduled-tasks/scheduled-tasks
 import { useStyleTheme } from "@/lib/hooks/use-style-theme";
 import { useFontSize } from "@/lib/hooks/use-font-size";
 import { useFontFamily, FONT_OPTIONS } from "@/lib/hooks/use-font-family";
-import { Minus, Plus, RotateCcw } from "lucide-react";
+import { Minus, Plus, RotateCcw, X, FolderPlus } from "lucide-react";
 import type { K8sConfig } from "@/lib/cluster/config";
 
 interface Settings {
@@ -75,6 +75,9 @@ export default function SettingsPage() {
   const { styleTheme, setStyleTheme } = useStyleTheme();
   const { fontSize, increase, decrease, reset, min, max } = useFontSize();
   const { fontFamily, setFontFamily: setFont, reset: resetFont } = useFontFamily();
+  const [workspaceRoots, setWorkspaceRoots] = useState<string[]>([]);
+  const [newRootInput, setNewRootInput] = useState("");
+  const [rootsSaving, setRootsSaving] = useState(false);
   const [k8sConfig, setK8sConfig] = useState<K8sConfig>({
     kubeconfigPath: "", submitter: "", imagePullSecret: "", mountUser: "",
     clusterContextMap: { a3: "", muxi: "" },
@@ -182,6 +185,9 @@ export default function SettingsPage() {
         }
         if (data.k8sConfig) {
           setK8sConfig(data.k8sConfig);
+        }
+        if (Array.isArray(data.workspaceRoots)) {
+          setWorkspaceRoots(data.workspaceRoots);
         }
         if (data.providerKeys?.[prov]) {
           void fetchRemoteModels(prov, { silent: true, requestedModel: m });
@@ -796,23 +802,77 @@ export default function SettingsPage() {
                   {t("workspaceRootsDesc")}
                 </CardDescription>
               </CardHeader>
-              <CardContent>
-                {settings?.workspaceRoots && settings.workspaceRoots.length > 0 ? (
-                  <div className="space-y-1">
-                    {settings.workspaceRoots.map((root) => (
-                      <div
-                        key={root}
-                        className="rounded bg-muted px-3 py-2 font-mono text-sm"
+              <CardContent className="space-y-3">
+                {/* Current roots list */}
+                <div className="space-y-1.5">
+                  {workspaceRoots.length > 0 ? workspaceRoots.map((root) => (
+                    <div key={root} className="flex items-center gap-2 rounded bg-muted px-3 py-2">
+                      <span className="flex-1 font-mono text-sm truncate">{root}</span>
+                      <button
+                        onClick={() => setWorkspaceRoots((prev) => prev.filter((r) => r !== root))}
+                        className="text-muted-foreground hover:text-destructive transition-colors"
+                        title="Remove"
                       >
-                        {root}
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <p className="text-sm text-muted-foreground">
-                    {t("notConfigured")}
-                  </p>
-                )}
+                        <X className="h-3.5 w-3.5" />
+                      </button>
+                    </div>
+                  )) : (
+                    <p className="text-sm text-muted-foreground">{t("notConfigured")}</p>
+                  )}
+                </div>
+
+                {/* Add new root */}
+                <div className="flex gap-2">
+                  <Input
+                    value={newRootInput}
+                    onChange={(e) => setNewRootInput(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" && newRootInput.trim()) {
+                        const p = newRootInput.trim();
+                        if (!workspaceRoots.includes(p)) setWorkspaceRoots((prev) => [...prev, p]);
+                        setNewRootInput("");
+                      }
+                    }}
+                    placeholder="/home/user/projects"
+                    className="font-mono text-sm"
+                  />
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={() => {
+                      const p = newRootInput.trim();
+                      if (p && !workspaceRoots.includes(p)) {
+                        setWorkspaceRoots((prev) => [...prev, p]);
+                        setNewRootInput("");
+                      }
+                    }}
+                  >
+                    <FolderPlus className="h-4 w-4" />
+                  </Button>
+                </div>
+
+                <Button
+                  size="sm"
+                  disabled={rootsSaving}
+                  onClick={async () => {
+                    setRootsSaving(true);
+                    try {
+                      const res = await fetch("/api/settings", {
+                        method: "PATCH",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ workspace_roots: workspaceRoots }),
+                      });
+                      if (!res.ok) throw new Error("Failed to save");
+                      toast.success("Workspace roots saved");
+                    } catch {
+                      toast.error("Failed to save workspace roots");
+                    } finally {
+                      setRootsSaving(false);
+                    }
+                  }}
+                >
+                  {rootsSaving ? "Saving…" : "Save"}
+                </Button>
               </CardContent>
             </Card>
 

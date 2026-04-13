@@ -51,8 +51,9 @@ fn app_data_dir(app: &AppHandle) -> tauri::Result<PathBuf> {
     Ok(dir)
 }
 
-/// Default workspace root: `<app-data>/workspaces/`.
-/// The user can override this in Settings → Workspace Roots.
+/// Default workspace root: `~/DiscoveryOS/`.
+/// Placed directly in the user's home directory so it is easy to find.
+/// The user can add or change roots in Settings → Workspace Roots.
 fn default_workspace_roots(app: &AppHandle) -> tauri::Result<String> {
     // Honour an explicit env-var override (useful for power users / testing).
     if let Ok(v) = std::env::var("WORKSPACE_ROOTS") {
@@ -60,7 +61,9 @@ fn default_workspace_roots(app: &AppHandle) -> tauri::Result<String> {
             return Ok(v);
         }
     }
-    let dir = app_data_dir(app)?.join("workspaces");
+    // Default to ~/DiscoveryOS — visible and easy to find in the home directory.
+    let home = app.path().home_dir()?;
+    let dir = home.join("DiscoveryOS");
     fs::create_dir_all(&dir).map_err(|e| tauri::Error::Anyhow(e.into()))?;
     Ok(dir.to_string_lossy().into_owned())
 }
@@ -429,8 +432,15 @@ pub fn run() {
                 }
 
                 // 3. Swap splash → main window.
+                // WebKit may have cached a "Connection refused" error from when the
+                // hidden window tried to load the URL before the server was ready.
+                // Navigate explicitly to force a fresh page load, then show.
                 close_loading_window(&handle);
                 if let Some(window) = handle.get_webview_window("main") {
+                    let server_url = format!("http://127.0.0.1:{SERVER_PORT}");
+                    if let Ok(url) = server_url.parse::<tauri::Url>() {
+                        let _ = window.navigate(url);
+                    }
                     let _ = window.show();
                     let _ = window.set_focus();
                 }

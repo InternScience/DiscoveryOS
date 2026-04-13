@@ -136,6 +136,16 @@ export async function PATCH(request: NextRequest) {
       envUpdates.GITHUB_TOKEN = body.github_token;
     }
 
+    // Workspace roots — stored in .env.local as a comma-separated list
+    if (Array.isArray(body.workspace_roots)) {
+      const roots = (body.workspace_roots as string[])
+        .map((r: string) => r.trim())
+        .filter(Boolean)
+        .join(",");
+      envUpdates.WORKSPACE_ROOTS = roots;
+      process.env.WORKSPACE_ROOTS = roots;
+    }
+
     // K8s cluster settings → .env.local mapping (uses shared SETTINGS_TO_ENV)
     for (const [settingsKey, envKey] of Object.entries(SETTINGS_TO_ENV)) {
       if (typeof body[settingsKey] === "string") {
