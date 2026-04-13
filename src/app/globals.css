@@ -4,6 +4,17 @@
 @import "katex/dist/katex.min.css";
 @import "highlight.js/styles/github-dark-dimmed.min.css";
 
+/* Frameless rounded window — only when running inside Tauri desktop.
+   A script in layout.tsx adds data-tauri="true" to <html> on detection. */
+html[data-tauri="true"],
+html[data-tauri="true"] body {
+  background: transparent !important;
+}
+html[data-tauri="true"] body {
+  border-radius: 12px;
+  overflow: hidden;
+}
+
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {

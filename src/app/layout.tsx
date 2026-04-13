@@ -30,6 +30,13 @@ export default async function RootLayout({
             __html: buildFontInitScript(),
           }}
         />
+        {/* Detect Tauri webview and mark <html> so CSS can apply desktop-only styles */}
+        <script
+          suppressHydrationWarning
+          dangerouslySetInnerHTML={{
+            __html: `try{if('__TAURI_INTERNALS__' in window)document.documentElement.dataset.tauri='true'}catch(e){}`,
+          }}
+        />
       </head>
       <body
         className="antialiased"
