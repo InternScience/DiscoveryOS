@@ -3,8 +3,8 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { Bot, Settings, Zap, FolderOpen, Minimize2, Database, Minus, Square, X } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Settings, Zap, FolderOpen, Minimize2, Database, Minus, Square, X } from "lucide-react";
+import Image from "next/image";import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "./theme-toggle";
 import { LanguageToggle } from "./language-toggle";
 import {
@@ -99,15 +99,18 @@ export function Header({ onToggleMinimalMode, showMinimalToggle }: HeaderProps) 
         className="sticky top-0 z-50 w-full border-b border-border/50 bg-background/80 backdrop-blur-xl supports-[backdrop-filter]:bg-background/60 select-none"
       >
         <div className="flex h-12 w-full items-center px-3">
-          {/* Logo — click area must not be drag region */}
+          {/* Logo */}
           <Link
             href="/"
             className="group flex items-center gap-2 font-semibold shrink-0"
           >
-            <div className="relative flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br from-primary/20 to-accent/20 transition-all duration-300 group-hover:from-primary/30 group-hover:to-accent/30">
-              <Bot className="h-4 w-4 text-primary transition-transform duration-300 group-hover:scale-110" />
-              <div className="absolute inset-0 rounded-lg bg-gradient-to-br from-primary to-accent opacity-0 blur-lg transition-opacity duration-300 group-hover:opacity-30" />
-            </div>
+            <Image
+              src="/app-icon.png"
+              alt="DiscoveryOS"
+              width={28}
+              height={28}
+              className="transition-transform duration-300 group-hover:scale-110"
+            />
             <span className="bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-sm text-transparent transition-all duration-300 group-hover:from-primary group-hover:to-accent">
               DiscoveryOS
             </span>
