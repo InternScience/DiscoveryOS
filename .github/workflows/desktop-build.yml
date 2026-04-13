@@ -1,0 +1,184 @@
+name: Desktop Build
+
+# Manually triggered from GitHub Actions UI.
+# Builds .deb (Linux), .exe/.msi (Windows), .dmg (macOS) and uploads
+# the installers as workflow artifacts — no automatic release.
+on:
+  workflow_dispatch:
+    inputs:
+      node_version:
+        description: "Node.js sidecar version (e.g. v24.10.0)"
+        required: false
+        default: "v24.10.0"
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-22.04
+            platform: linux
+            node_arch: x64
+            rust_target: x86_64-unknown-linux-gnu
+            node_archive_ext: "tar.xz"
+            node_inner: "bin/node"
+            node_out_suffix: ""
+          - os: windows-latest
+            platform: windows
+            node_arch: x64
+            rust_target: x86_64-pc-windows-msvc
+            node_archive_ext: "zip"
+            node_inner: "node.exe"
+            node_out_suffix: ".exe"
+          - os: macos-latest
+            platform: macos
+            node_arch: arm64
+            rust_target: aarch64-apple-darwin
+            node_archive_ext: "tar.gz"
+            node_inner: "bin/node"
+            node_out_suffix: ""
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      # ── checkout ────────────────────────────────────────────────────────────
+      - uses: actions/checkout@v4
+
+      # ── toolchains ──────────────────────────────────────────────────────────
+      - name: Setup Node.js (build tools)
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.rust_target }}
+
+      - name: Cache Rust build
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: "tauri/src-tauri -> target"
+
+      # ── Linux system dependencies ────────────────────────────────────────────
+      - name: Install Linux dependencies
+        if: matrix.platform == 'linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libwebkit2gtk-4.1-dev \
+            libgtk-3-dev \
+            libayatana-appindicator3-dev \
+            librsvg2-dev \
+            patchelf \
+            fakeroot
+
+      # ── Node.js sidecar ──────────────────────────────────────────────────────
+      - name: Download Node.js sidecar binary
+        shell: bash
+        run: |
+          NODE_VERSION="${{ github.event.inputs.node_version }}"
+          ARCH="${{ matrix.node_arch }}"
+          EXT="${{ matrix.node_archive_ext }}"
+          INNER="${{ matrix.node_inner }}"
+          TARGET="${{ matrix.rust_target }}"
+          SUFFIX="${{ matrix.node_out_suffix }}"
+
+          case "${{ matrix.platform }}" in
+            linux)   OS_NAME="linux"   ;;
+            windows) OS_NAME="win"     ;;
+            macos)   OS_NAME="darwin"  ;;
+          esac
+
+          ARCHIVE="node-${NODE_VERSION}-${OS_NAME}-${ARCH}.${EXT}"
+          URL="https://npmmirror.com/mirrors/node/${NODE_VERSION}/${ARCHIVE}"
+          FALLBACK="https://nodejs.org/dist/${NODE_VERSION}/${ARCHIVE}"
+
+          mkdir -p tauri/src-tauri/binaries
+
+          echo "Downloading $URL ..."
+          curl -fL --retry 3 "$URL" -o "/tmp/${ARCHIVE}" || \
+          curl -fL --retry 3 "$FALLBACK" -o "/tmp/${ARCHIVE}"
+
+          case "$EXT" in
+            tar.xz) tar -xJf "/tmp/${ARCHIVE}" -C /tmp ;;
+            tar.gz) tar -xzf "/tmp/${ARCHIVE}" -C /tmp ;;
+            zip)    unzip -q  "/tmp/${ARCHIVE}" -d /tmp ;;
+          esac
+
+          EXTRACTED=$(find /tmp -maxdepth 1 -type d -name "node-${NODE_VERSION}-*" | head -1)
+          cp "${EXTRACTED}/${INNER}" "tauri/src-tauri/binaries/node-${TARGET}${SUFFIX}"
+          chmod +x "tauri/src-tauri/binaries/node-${TARGET}${SUFFIX}" 2>/dev/null || true
+          echo "Sidecar saved: tauri/src-tauri/binaries/node-${TARGET}${SUFFIX}"
+
+      # ── Next.js build ────────────────────────────────────────────────────────
+      - name: Install frontend dependencies
+        run: npm ci
+
+      - name: Build Next.js standalone
+        run: npm run build
+
+      # ── assemble Tauri resources ─────────────────────────────────────────────
+      - name: Assemble Tauri resources
+        shell: bash
+        run: |
+          RES_DIR="tauri/src-tauri/resources/next-standalone"
+          rm -rf "$RES_DIR"
+          mkdir -p "$RES_DIR"
+
+          cp -R .next/standalone/. "$RES_DIR/"
+          [ -d public ]        && cp -R public        "$RES_DIR/public"
+          [ -d .next/static ]  && mkdir -p "$RES_DIR/.next" && cp -R .next/static "$RES_DIR/.next/static"
+
+          # Remove NFT-over-traced directories not needed at runtime
+          for d in tauri src data docs scripts config site opensource drizzle; do
+            rm -rf "$RES_DIR/$d"
+          done
+
+          # Re-add drizzle migrations (needed at runtime)
+          [ -d drizzle ] && cp -R drizzle "$RES_DIR/drizzle"
+
+          test -f "$RES_DIR/server.js"                  || { echo "Missing server.js"; exit 1; }
+          test -f "$RES_DIR/drizzle/meta/_journal.json" || { echo "Missing drizzle journal"; exit 1; }
+          echo "Resources: $(du -sh "$RES_DIR" | cut -f1)"
+
+      # ── Tauri build ──────────────────────────────────────────────────────────
+      - name: Install Tauri CLI
+        run: npm install --prefix tauri
+
+      - name: Build Tauri app (Linux)
+        if: matrix.platform == 'linux'
+        run: cd tauri && fakeroot npx tauri build
+
+      - name: Build Tauri app (Windows / macOS)
+        if: matrix.platform != 'linux'
+        run: cd tauri && npx tauri build
+
+      # ── upload artifacts ─────────────────────────────────────────────────────
+      - name: Upload Linux .deb
+        if: matrix.platform == 'linux'
+        uses: actions/upload-artifact@v4
+        with:
+          name: DiscoveryOS-linux-deb
+          path: tauri/src-tauri/target/release/bundle/deb/*.deb
+          retention-days: 30
+
+      - name: Upload Windows installer
+        if: matrix.platform == 'windows'
+        uses: actions/upload-artifact@v4
+        with:
+          name: DiscoveryOS-windows
+          path: |
+            tauri/src-tauri/target/release/bundle/nsis/*.exe
+            tauri/src-tauri/target/release/bundle/msi/*.msi
+          retention-days: 30
+
+      - name: Upload macOS .dmg
+        if: matrix.platform == 'macos'
+        uses: actions/upload-artifact@v4
+        with:
+          name: DiscoveryOS-macos-dmg
+          path: tauri/src-tauri/target/release/bundle/dmg/*.dmg
+          retention-days: 30
