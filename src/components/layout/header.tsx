@@ -20,11 +20,21 @@ interface HeaderProps {
   showMinimalToggle?: boolean;
 }
 
-/** Returns true when running inside the Tauri webview. */
+/** Returns true when running inside the Tauri webview.
+ *  Tauri v2 doesn't expose window.__TAURI__ by default — probe the API instead. */
 function useTauri() {
   const [isTauri, setIsTauri] = useState(false);
   useEffect(() => {
-    setIsTauri(typeof window !== "undefined" && "__TAURI__" in window);
+    // window.__TAURI_INTERNALS__ is always present in Tauri v2 webviews
+    if (typeof window !== "undefined" && "__TAURI_INTERNALS__" in window) {
+      setIsTauri(true);
+      return;
+    }
+    // Fallback: try invoking the window API
+    import("@tauri-apps/api/window")
+      .then(({ getCurrentWindow }) => getCurrentWindow().isMaximized())
+      .then(() => setIsTauri(true))
+      .catch(() => setIsTauri(false));
   }, []);
   return isTauri;
 }
@@ -52,6 +62,16 @@ export function Header({ onToggleMinimalMode, showMinimalToggle }: HeaderProps) 
     return () => cleanup?.();
   }, [isTauri]);
 
+  // Dragging via JS is more reliable than data-tauri-drag-region on Linux/webkit
+  const handleDragMouseDown = useCallback(async (e: React.MouseEvent) => {
+    if (!isTauri) return;
+    // Don't drag when clicking interactive elements
+    const target = e.target as HTMLElement;
+    if (target.closest("button, a, input, [role='button'], [data-no-drag]")) return;
+    const { getCurrentWindow } = await import("@tauri-apps/api/window");
+    await getCurrentWindow().startDragging();
+  }, [isTauri]);
+
   const minimize = useCallback(async () => {
     const { getCurrentWindow } = await import("@tauri-apps/api/window");
     await getCurrentWindow().minimize();
@@ -66,7 +86,7 @@ export function Header({ onToggleMinimalMode, showMinimalToggle }: HeaderProps) 
   const close = useCallback(async () => {
     const { getCurrentWindow } = await import("@tauri-apps/api/window");
     await getCurrentWindow().close();
-  }, []);
+  }, [])
 
   // Extract workspaceId from URL like /workspace/xxx
   const workspaceMatch = pathname.match(/^\/workspace\/([^/]+)/);
@@ -74,9 +94,8 @@ export function Header({ onToggleMinimalMode, showMinimalToggle }: HeaderProps) 
 
   return (
     <TooltipProvider delayDuration={300}>
-      {/* data-tauri-drag-region makes the entire header draggable in frameless mode */}
       <header
-        data-tauri-drag-region
+        onMouseDown={handleDragMouseDown}
         className="sticky top-0 z-50 w-full border-b border-border/50 bg-background/80 backdrop-blur-xl supports-[backdrop-filter]:bg-background/60 select-none"
       >
         <div className="flex h-12 w-full items-center px-3">
@@ -84,7 +103,6 @@ export function Header({ onToggleMinimalMode, showMinimalToggle }: HeaderProps) 
           <Link
             href="/"
             className="group flex items-center gap-2 font-semibold shrink-0"
-            data-tauri-drag-region="false"
           >
             <div className="relative flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br from-primary/20 to-accent/20 transition-all duration-300 group-hover:from-primary/30 group-hover:to-accent/30">
               <Bot className="h-4 w-4 text-primary transition-transform duration-300 group-hover:scale-110" />
@@ -96,10 +114,10 @@ export function Header({ onToggleMinimalMode, showMinimalToggle }: HeaderProps) 
           </Link>
 
           {/* Drag area spacer */}
-          <div className="flex-1" data-tauri-drag-region />
+          <div className="flex-1" />
 
-          {/* Navigation — pointer events override drag region */}
-          <nav className="flex items-center gap-1" data-tauri-drag-region="false">
+          {/* Navigation — buttons/links automatically excluded from drag by handleDragMouseDown */}
+          <nav className="flex items-center gap-1">
             {showMinimalToggle && onToggleMinimalMode && (
               <Tooltip>
                 <TooltipTrigger asChild>
