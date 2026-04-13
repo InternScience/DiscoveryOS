@@ -32,7 +32,9 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test": "vitest run"
+    "test": "vitest run",
+    "desktop:build": "bash scripts/build-desktop.sh",
+    "desktop:dev": "cd tauri && npm install && npx tauri dev"
   },
   "dependencies": {
     "@ai-sdk/anthropic": "^3.0.64",
@@ -44,6 +46,7 @@
     "@codemirror/view": "^6.41.0",
     "@huggingface/hub": "^2.11.0",
     "@larksuiteoapi/node-sdk": "^1.60.0",
+    "@tauri-apps/api": "^2.10.1",
     "@uiw/react-codemirror": "^4.25.9",
     "@xyflow/react": "^12.10.2",
     "ai": "^6.0.99",

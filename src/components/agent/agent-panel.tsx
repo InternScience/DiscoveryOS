@@ -1460,12 +1460,12 @@ export function AgentPanel({
             autoFocus
           />
           <div className="flex items-center gap-1 shrink-0 mt-1">
-            {/* Buddy avatar */}
+            {/* Buddy avatar — hatch dialog hidden in desktop build */}
             <BuddyAvatar
               key={buddyKey}
               workspaceId={workspaceId}
               lastAssistantMessage={lastAssistantMessage}
-              onHatchRequest={() => setShowBuddyHatch(true)}
+              onHatchRequest={() => {/* buddy hatch hidden */}}
             />
             {/* Cost display */}
             {showCostDisplay && <CostDisplay snapshot={costSnapshot} />}
@@ -1523,12 +1523,12 @@ export function AgentPanel({
         workspaceId={workspaceId}
       />
 
-      {/* Buddy hatch dialog */}
-      <BuddyHatchDialog
+      {/* Buddy hatch dialog — hidden */}
+      {false && <BuddyHatchDialog
         open={showBuddyHatch}
         onOpenChange={setShowBuddyHatch}
         onHatched={() => setBuddyKey((k) => k + 1)}
-      />
+      />}
 
       {/* Skill parameter dialog */}
       {activeSkill && (
